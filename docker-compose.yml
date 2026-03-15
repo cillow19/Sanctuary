@@ -1,0 +1,65 @@
+services:
+  sanctuary.login:
+    image: ${DOCKER_REGISTRY-}sanctuary-login
+    build:
+      context: ./Sanctuary/src
+      dockerfile: Docker/Sanctuary.Login.dockerfile
+    restart: unless-stopped
+    ports:
+      - "20041:20041/udp"
+      - "20042:20042/udp"
+    volumes:
+      - logs:/app/Logs
+      - ./Sanctuary/src/Resources:/app/Resources
+      - ./Sanctuary/src/.local_data:/data
+    environment:
+      - Database__Provider=1
+      - Database__VersionString=3.0.0-sqlite
+      - Database__ConnectionString=Data Source=/data/sanctuary.db;
+      - Server__LoginGatewayAddress=sanctuary.login:20041
+
+  sanctuary.gateway:
+    image: ${DOCKER_REGISTRY-}sanctuary-gateway
+    build:
+      context: ./Sanctuary/src
+      dockerfile: Docker/Sanctuary.Gateway.dockerfile
+    restart: unless-stopped
+    ports:
+      - "20260:20260/udp"
+    volumes:
+      - logs:/app/Logs
+      - ./Sanctuary/src/Resources:/app/Resources
+      - ./Sanctuary/src/.local_data:/data
+    environment:
+      - Database__Provider=1
+      - Database__VersionString=3.0.0-sqlite
+      - Database__ConnectionString=Data Source=/data/sanctuary.db;
+      - Server__LoginGatewayAddress=sanctuary.login:20041
+    depends_on:
+      - sanctuary.login
+
+  express-server:
+    build:
+      context: ./free-realms-server
+      dockerfile: server.dockerfile
+    restart: unless-stopped
+    ports:
+      - "20260:20260"
+    volumes:
+      - ./Sanctuary/src/.local_data:/data
+    environment:
+      - DB_FILE=/data/sanctuary.db
+    depends_on:
+      - sanctuary.login
+
+  website:
+    build:
+      context: ./free-realms-website
+      dockerfile: website.dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - express-server
+
+volumes:
+  logs:
