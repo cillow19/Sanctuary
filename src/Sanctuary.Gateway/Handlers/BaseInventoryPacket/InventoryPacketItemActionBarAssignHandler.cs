@@ -45,6 +45,7 @@ public static class InventoryPacketItemActionBarAssignHandler
 
         if (packet.Guid == 0)
         {
+            connection.Player.ActionBarSlots.Remove(packet.Slot);
             clientUpdatePacketUpdateActionBarSlot.Slot.IsEmpty = true;
 
             connection.SendTunneled(clientUpdatePacketUpdateActionBarSlot);
@@ -66,11 +67,11 @@ public static class InventoryPacketItemActionBarAssignHandler
             return true;
         }
 
-        clientUpdatePacketUpdateActionBarSlot.Slot.IsEmpty = false;
+        connection.Player.ActionBarSlots[packet.Slot] = packet.Guid;
 
+        clientUpdatePacketUpdateActionBarSlot.Slot.IsEmpty = false;
         clientUpdatePacketUpdateActionBarSlot.Slot.IconId = clientItemDefinition.Icon.Id;
         clientUpdatePacketUpdateActionBarSlot.Slot.NameId = clientItemDefinition.NameId;
-
         clientUpdatePacketUpdateActionBarSlot.Slot.Unknown5 = 1;
         clientUpdatePacketUpdateActionBarSlot.Slot.Unknown6 = 4;
         clientUpdatePacketUpdateActionBarSlot.Slot.Unknown7 = 15;

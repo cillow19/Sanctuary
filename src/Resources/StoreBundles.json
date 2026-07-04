@@ -38963,5 +38963,140 @@
     "SkuId": 1,
     "MemberDiscount": 10,
     "MembersOnlyPrice": 1
+  },
+  {
+    "Comment": "Red Silly String Can",
+    "LaunchTime": "2009-04-11T07:16:53+00:00",
+    "ExpireTime": "2090-01-01T08:00:00+00:00",
+    "Image": {
+      "Image": "4340",
+      "Tint": "229"
+    },
+    "Entries": [
+      {
+        "Quantity": 5,
+        "GameItemId": 67961,
+        "MarketingItemId": 67961
+      }
+    ],
+    "Id": 99001,
+    "NameId": 408140,
+    "DescriptionId": 408137,
+    "Status": 1,
+    "CurrencyType": 1,
+    "Price": 50,
+    "AltCurrencyPrice": 50,
+    "StoreId": 1,
+    "CategoryGroupId": 48,
+    "SkuId": 1,
+    "MemberDiscount": 10
+  },
+  {
+    "Comment": "Blue Silly String Can",
+    "LaunchTime": "2009-04-11T07:16:53+00:00",
+    "ExpireTime": "2090-01-01T08:00:00+00:00",
+    "Image": {
+      "Image": "4340",
+      "Tint": "253"
+    },
+    "Entries": [
+      {
+        "Quantity": 5,
+        "GameItemId": 62516,
+        "MarketingItemId": 62516
+      }
+    ],
+    "Id": 99002,
+    "NameId": 407382,
+    "DescriptionId": 408137,
+    "Status": 1,
+    "CurrencyType": 1,
+    "Price": 50,
+    "AltCurrencyPrice": 50,
+    "StoreId": 1,
+    "CategoryGroupId": 48,
+    "SkuId": 1,
+    "MemberDiscount": 10
+  },
+  {
+    "Comment": "Green Silly String Can",
+    "LaunchTime": "2009-04-11T07:16:53+00:00",
+    "ExpireTime": "2090-01-01T08:00:00+00:00",
+    "Image": {
+      "Image": "4340",
+      "Tint": "243"
+    },
+    "Entries": [
+      {
+        "Quantity": 5,
+        "GameItemId": 67962,
+        "MarketingItemId": 67962
+      }
+    ],
+    "Id": 99003,
+    "NameId": 408141,
+    "DescriptionId": 408137,
+    "Status": 1,
+    "CurrencyType": 1,
+    "Price": 50,
+    "AltCurrencyPrice": 50,
+    "StoreId": 1,
+    "CategoryGroupId": 48,
+    "SkuId": 1,
+    "MemberDiscount": 10
+  },
+  {
+    "Comment": "Orange Silly String Can",
+    "LaunchTime": "2009-04-11T07:16:53+00:00",
+    "ExpireTime": "2090-01-01T08:00:00+00:00",
+    "Image": {
+      "Image": "4340",
+      "Tint": "231"
+    },
+    "Entries": [
+      {
+        "Quantity": 5,
+        "GameItemId": 67963,
+        "MarketingItemId": 67963
+      }
+    ],
+    "Id": 99004,
+    "NameId": 408142,
+    "DescriptionId": 408137,
+    "Status": 1,
+    "CurrencyType": 1,
+    "Price": 50,
+    "AltCurrencyPrice": 50,
+    "StoreId": 1,
+    "CategoryGroupId": 48,
+    "SkuId": 1,
+    "MemberDiscount": 10
+  },
+  {
+    "Comment": "Yellow Silly String Can",
+    "LaunchTime": "2009-04-11T07:16:53+00:00",
+    "ExpireTime": "2090-01-01T08:00:00+00:00",
+    "Image": {
+      "Image": "4340",
+      "Tint": "233"
+    },
+    "Entries": [
+      {
+        "Quantity": 5,
+        "GameItemId": 67964,
+        "MarketingItemId": 67964
+      }
+    ],
+    "Id": 99005,
+    "NameId": 408143,
+    "DescriptionId": 408137,
+    "Status": 1,
+    "CurrencyType": 1,
+    "Price": 50,
+    "AltCurrencyPrice": 50,
+    "StoreId": 1,
+    "CategoryGroupId": 48,
+    "SkuId": 1,
+    "MemberDiscount": 10
   }
 ]

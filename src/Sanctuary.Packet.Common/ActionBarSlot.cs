@@ -5,11 +5,13 @@ namespace Sanctuary.Packet.Common;
 public class ActionBarSlot : ISerializableType
 {
     public bool IsEmpty;
-
+    
     public int IconId;
     public int IconTintId;
 
     public int NameId;
+
+    public int AbilityId;
 
     public int Unknown5;
     public int Unknown6;

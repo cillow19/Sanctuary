@@ -8,8 +8,8 @@ public class PlayerUpdatePacketPlayCompositeEffect : BasePlayerUpdatePacket, ISe
 {
     public new const short OpCode = 16;
 
-    public ulong Guid;
-    public ulong Unknown2;
+    public ulong TargetPlayerGuid;
+    public ulong OriginPlayerGuid;
 
     public int CompositeEffectId;
 
@@ -31,8 +31,8 @@ public class PlayerUpdatePacketPlayCompositeEffect : BasePlayerUpdatePacket, ISe
 
         base.Write(writer);
 
-        writer.Write(Guid);
-        writer.Write(Unknown2);
+        writer.Write(TargetPlayerGuid);
+        writer.Write(OriginPlayerGuid);
 
         writer.Write(CompositeEffectId);
 
