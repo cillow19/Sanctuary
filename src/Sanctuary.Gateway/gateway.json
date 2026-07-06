@@ -6,9 +6,9 @@
     "Environment": "live",
     "ClientVersion": "1.910.1.530630",
 
-    "ServerAddress": "127.0.0.1:20260",
+    "ServerAddress": "178.105.199.68:20260",
 
-    "LoginGatewayAddress": "localhost:20041",
+    "LoginGatewayAddress": "178.105.199.68:20041",
     "LoginGatewayChallenge": "OSFR-EDITz@2024",
 
     "ShowMemberNagScreen": false
