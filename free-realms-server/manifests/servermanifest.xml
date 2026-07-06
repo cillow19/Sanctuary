@@ -3,7 +3,7 @@
   <Name>Local</Name>
   <Description>Local Hosting Server</Description>
 
-  <LoginServer>127.0.0.1:20042</LoginServer>
-  <LoginApiUrl>http://127.0.0.1:20260/auth/login</LoginApiUrl>
-  <RegisterUrl>http://127.0.0.1:20260/auth/register</RegisterUrl>
+  <LoginServer>play.osfr-cats-server.dev:20042</LoginServer>
+  <LoginApiUrl>http://play.osfr-cats-server.dev/auth/login</LoginApiUrl>
+  <RegisterUrl>http://play.osfr-cats-server.dev/auth/register</RegisterUrl>
 </ServerManifest>
