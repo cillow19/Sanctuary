@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ServerManifest version="1">
-  <Name>Local</Name>
-  <Description>Local Hosting Server</Description>
+  <Name>Cat's OSFR Dev Server</Name>
+  <Description>Cat's OSFR Dev Server</Description>
 
   <LoginServer>play.osfr-cats-server.dev:20042</LoginServer>
   <LoginApiUrl>http://play.osfr-cats-server.dev/auth/login</LoginApiUrl>
