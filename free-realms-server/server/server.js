@@ -26,7 +26,7 @@ const db = new sqlite3.Database(dbFile, (err) => {
 setDatabase(db);
 
 const corsOptions = {
-  origin: 'http://play.osfr-cats-server.dev/login',
+  origin: 'http://localhost:8080',
   optionsSuccessStatus: 200 // Some legacy browsers (IE11, various mobile) choke on 204
 };
 
