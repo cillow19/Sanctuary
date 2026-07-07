@@ -14,6 +14,5 @@ public class AbilityDefinition
     public int NameId { get; set; }
     public int AbilityId { get; set; }
     public int CompositeEffectId { get; set; }
-
     public bool HasTarget { get; set; }
 }

@@ -1,3 +1,8 @@
 [
-    { "Comment": "", "Id": 0, "NameId": 0, "AbilityId": 0, "CompositeEffectId": 0, "HasTarget": true }
+    { "Comment": "Blue Silly String Can", "Id": 62516, "NameId": 407382, "AbilityId": 4160, "CompositeEffectId": 15825, "HasTarget": true },
+    { "Comment": "Red Silly String Can", "Id": 67961, "NameId": 408140, "AbilityId": 4177, "CompositeEffectId": 15818, "HasTarget": true },
+    { "Comment": "Green Silly String Can", "Id": 67962, "NameId": 408141, "AbilityId": 4178, "CompositeEffectId": 15826, "HasTarget": true },
+    { "Comment": "Orange Silly String Can", "Id": 67963, "NameId": 408142, "AbilityId": 4179, "CompositeEffectId": 15827, "HasTarget": true },
+    { "Comment": "Yellow Silly String Can", "Id": 67964, "NameId": 408143, "AbilityId": 4180, "CompositeEffectId": 15828, "HasTarget": true },
+    { "Comment": "Party Popper", "Id": 62529, "NameId": 407420, "AbilityId": 4161, "CompositeEffectId": 15813, "HasTarget": false }
 ]

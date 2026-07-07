@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 using Sanctuary.Game;
 using Sanctuary.Game.Entities;
+using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common.Attributes;
 
@@ -22,15 +23,6 @@ public static class AbilityPacketClientRequestStartAbilityHandler
 
     // Built at startup from ClientItemDefinitions: ActivatableAbilityId -> CompositeEffectId
     private static IResourceManager _resourceManager = null!;
-    private static Dictionary<int, int> _abilityEffectsDict = null!;
-    private static Dictionary<int, int> BuildAbilityEffectsLookup(IResourceManager resourceManager)
-    {
-        Dictionary<int, int> abilityEffectsDict = resourceManager.ClientItemDefinitions.Values
-            .Where(x => x.ActivatableAbilityId != 0 && x.CompositeEffectId != 0)
-            .ToDictionary(x => x.ActivatableAbilityId, x => x.CompositeEffectId);
-        _logger.LogTrace("Built ability effects lookup with {count} entries.", abilityEffectsDict.Count);
-        return abilityEffectsDict;
-    }
 
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
@@ -38,7 +30,6 @@ public static class AbilityPacketClientRequestStartAbilityHandler
         _logger = loggerFactory.CreateLogger(nameof(AbilityPacketClientRequestStartAbilityHandler));
 
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
-        _abilityEffectsDict = BuildAbilityEffectsLookup(_resourceManager);
     }
 
     private static Player GetNearestPlayer(GatewayConnection connection) {
@@ -51,6 +42,37 @@ public static class AbilityPacketClientRequestStartAbilityHandler
         }
         _logger.LogTrace("No visible players found for player {guid}, using self as nearest.", connection.Player.Guid);
         return connection.Player; 
+    }
+
+
+    private static PlayerUpdatePacketPlayCompositeEffect BuildPacket(GatewayConnection connection, AbilityDefinition abilityDefinition)
+    {
+        ulong originPlayerGuid = connection.Player.Guid;
+        int compositeEffectId = abilityDefinition.CompositeEffectId;
+        if (abilityDefinition.HasTarget)
+        {
+            Player nearestPlayer = GetNearestPlayer(connection);
+            return new PlayerUpdatePacketPlayCompositeEffect
+            {
+                TargetPlayerGuid = nearestPlayer.Guid,
+                OriginPlayerGuid = originPlayerGuid,
+                CompositeEffectId = compositeEffectId,
+                EffectDelay = 0,
+                Clear = false
+            };
+        }
+        else
+        {
+            return new PlayerUpdatePacketPlayCompositeEffect
+            {
+                TargetPlayerGuid = originPlayerGuid,
+                OriginPlayerGuid = originPlayerGuid,
+                CompositeEffectId = compositeEffectId,
+                EffectDelay = 0,
+                Clear = false
+            };
+        }   
+        
     }
 
     public static bool HandlePacket(GatewayConnection connection, ReadOnlySpan<byte> data)
@@ -68,23 +90,14 @@ public static class AbilityPacketClientRequestStartAbilityHandler
         {
             var item = connection.Player.Items.SingleOrDefault(x => x.Id == itemGuid);
             if (item != null
-                && _resourceManager.ClientItemDefinitions.TryGetValue(item.Definition, out var clientItemDefinition)
-                && clientItemDefinition.CompositeEffectId != 0)
+                && _resourceManager.Abilities.TryGetValue(item.Definition, out var abilityDefinition)
+                && abilityDefinition.CompositeEffectId != 0)
             {
-                _logger.LogTrace("Slot {slot} -> Item {guid} -> CompositeEffectId {effectId}", packet.Data.Slot, itemGuid, clientItemDefinition.CompositeEffectId);
+                _logger.LogTrace("Slot {slot} -> Item {guid} -> CompositeEffectId {effectId}", packet.Data.Slot, itemGuid, abilityDefinition.CompositeEffectId);
+
 
                 Player nearestPlayer = GetNearestPlayer(connection);
-                var effect = new PlayerUpdatePacketPlayCompositeEffect
-                {
-                    // Guid = connection.Player.Guid,
-                    // Unknown2 = nearestPlayer.Guid,
-                    TargetPlayerGuid = nearestPlayer.Guid,
-                    OriginPlayerGuid = connection.Player.Guid,
-                    CompositeEffectId = clientItemDefinition.CompositeEffectId,
-                    EffectDelay = 0,
-                    // Position = nearestPlayer.Position with { Y = nearestPlayer.Position.Y + 1.0f },
-                    Clear = false
-                };
+                var effect = BuildPacket(connection, abilityDefinition);
 
                 connection.Player.SendTunneledToVisible(effect, sendToSelf: true);
                 return true;
