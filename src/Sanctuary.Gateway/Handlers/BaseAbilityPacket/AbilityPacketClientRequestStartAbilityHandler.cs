@@ -90,6 +90,7 @@ public static class AbilityPacketClientRequestStartAbilityHandler
         {
             _logger.LogTrace("Slot {slot} -> Item {guid}", packet.Data.Slot, itemGuid);
             var item = connection.Player.Items.SingleOrDefault(x => x.Id == itemGuid);
+            _logger.LogTrace("Item Id {guid} -> Definition {definition}", item?.Id, item?.Definition);
             if (item != null && _resourceManager.Abilities.TryGetValue(item.Definition, out var abilityDefinition))
             {
                 _logger.LogTrace("Slot {slot} -> Item {guid} -> CompositeEffectId {effectId}", packet.Data.Slot, itemGuid, abilityDefinition.CompositeEffectId);
@@ -99,6 +100,9 @@ public static class AbilityPacketClientRequestStartAbilityHandler
 
                 connection.Player.SendTunneledToVisible(effect, sendToSelf: true);
                 return true;
+            } else
+            {
+                _logger.LogTrace("No ability definition for item {guid} in slot {slot}", itemGuid, packet.Data.Slot);
             }
         }
         else
