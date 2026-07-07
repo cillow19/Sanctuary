@@ -10,6 +10,7 @@ using Sanctuary.Game;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Resources.Definitions;
 using Sanctuary.Packet;
+using Sanctuary.Packet.Common;
 using Sanctuary.Packet.Common.Attributes;
 
 using SQLitePCL;
@@ -48,6 +49,7 @@ public static class AbilityPacketClientRequestStartAbilityHandler
     private static PlayerUpdatePacketPlayCompositeEffect BuildPacket(GatewayConnection connection, AbilityDefinition abilityDefinition)
     {
         ulong originPlayerGuid = connection.Player.Guid;
+
         int compositeEffectId = abilityDefinition.CompositeEffectId;
         if (abilityDefinition.HasTarget)
         {
@@ -90,20 +92,22 @@ public static class AbilityPacketClientRequestStartAbilityHandler
         {
             _logger.LogTrace("Slot {slot} -> Item {guid}", packet.Data.Slot, itemGuid);
             var item = connection.Player.Items.SingleOrDefault(x => x.Id == itemGuid);
-            _logger.LogTrace("Item Id {guid} -> Definition {definition}", item?.Id, item?.Definition);
-            if (item != null && _resourceManager.Abilities.TryGetValue(item.Definition, out var abilityDefinition))
+            if (item != null && _resourceManager.ClientItemDefinitions.TryGetValue(item.Definition, out var clientItemDefinition))
             {
-                _logger.LogTrace("Slot {slot} -> Item {guid} -> CompositeEffectId {effectId}", packet.Data.Slot, itemGuid, abilityDefinition.CompositeEffectId);
+                _logger.LogTrace("Slot {slot} -> Item {guid} -> CompositeEffectId {effectId}", packet.Data.Slot, itemGuid, clientItemDefinition.CompositeEffectId);
+
+                if (!_resourceManager.Abilities.TryGetValue(clientItemDefinition.Id, out var abilityDefinition))
+                {
+                    _logger.LogError("Failed to find ability definition for client item {id}.", clientItemDefinition.Id);
+                    return false;
+                }
 
                 Player nearestPlayer = GetNearestPlayer(connection);
                 var effect = BuildPacket(connection, abilityDefinition);
 
                 connection.Player.SendTunneledToVisible(effect, sendToSelf: true);
                 return true;
-            } else
-            {
-                _logger.LogTrace("No ability definition for item {guid} in slot {slot}", itemGuid, packet.Data.Slot);
-            }
+            } 
         }
         else
         {
