@@ -92,15 +92,15 @@ public static class AbilityPacketClientRequestStartAbilityHandler
         {
             _logger.LogTrace("Slot {slot} -> Item {guid}", packet.Data.Slot, itemGuid);
             var item = connection.Player.Items.SingleOrDefault(x => x.Id == itemGuid);
-            if (item != null && _resourceManager.ClientItemDefinitions.TryGetValue(item.Definition, out var clientItemDefinition))
+            if (item != null && _resourceManager.Abilities.TryGetValue(item.Definition, out var abilityDefinition))
             {
-                _logger.LogTrace("Slot {slot} -> Item {guid} -> CompositeEffectId {effectId}", packet.Data.Slot, itemGuid, clientItemDefinition.CompositeEffectId);
+                _logger.LogTrace("Slot {slot} -> Item {guid} -> CompositeEffectId {effectId}", packet.Data.Slot, itemGuid, abilityDefinition.CompositeEffectId);
 
-                if (!_resourceManager.Abilities.TryGetValue(clientItemDefinition.Id, out var abilityDefinition))
-                {
-                    _logger.LogError("Failed to find ability definition for client item {id}.", clientItemDefinition.Id);
-                    return false;
-                }
+                // if (!_resourceManager.Abilities.TryGetValue(abilityDefinition.Id, out var abilityDefinition))
+                // {
+                //     _logger.LogError("Failed to find ability definition for client item {id}.", abilityDefinition.Id);
+                //     return false;
+                // }
 
                 Player nearestPlayer = GetNearestPlayer(connection);
                 var effect = BuildPacket(connection, abilityDefinition);

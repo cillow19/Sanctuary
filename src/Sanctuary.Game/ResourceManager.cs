@@ -237,6 +237,8 @@ public class ResourceManager : IResourceManager
                 loaded = PlayerTitles.Load(PlayerTitlesFile);
             else if (e.FullPath == PointOfInterestsFile)
                 loaded = PointOfInterests.Load(PointOfInterestsFile);
+            else if (e.FullPath == AbilitiesFile)
+                loaded = Abilities.Load(AbilitiesFile);
             else
                 _logger.LogWarning("Unknown file changed. File: {filepath}", e.FullPath);
 
