@@ -38,6 +38,60 @@ public static class AbilityPacketClientRequestStartAbilityHandler
         _dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>();
     }
 
+    private static void HandleActionBarUpdate(GatewayConnection connection, ClientItem item, bool isDeleted)
+    {
+        Dictionary<int, int> actionBarSlots = connection.Player.ActionBarSlots;
+        var slotWithItem = actionBarSlots
+            .Where(slot => slot.Value == item.Id)
+            .Select(slot => slot.Key)
+            .SingleOrDefault();
+
+        if (slotWithItem == default)
+        {
+            _logger.LogWarning("Failed to find action bar slot for item {id}.", item.Id);
+            return;
+        }
+
+        int clientActionBarId = 2;
+        ClientUpdatePacketUpdateActionBarSlot packet = new ClientUpdatePacketUpdateActionBarSlot
+        {
+            Data = 
+            {
+                Id = clientActionBarId,
+                Slot = slotWithItem,
+            },
+        };
+
+        if (isDeleted)
+        {
+            actionBarSlots.Remove(slotWithItem);
+            packet.Slot.IsEmpty = true;
+            connection.SendTunneled(packet);
+            return;
+        }
+
+        if (!_resourceManager.ClientItemDefinitions.TryGetValue(item.Definition, out var clientItemDefinition))
+        {
+            _logger.LogWarning("Failed to find client item definition for item {id}.", item.Id);
+            return;
+        }
+
+        packet.Slot.IsEmpty = false;
+        packet.Slot.IconId = clientItemDefinition.Icon.Id;
+        packet.Slot.NameId = clientItemDefinition.NameId;
+        packet.Slot.Unknown5 = 1;
+        packet.Slot.Unknown6 = 4;
+        packet.Slot.Unknown7 = 15;
+        packet.Slot.Enabled = true;
+        packet.Slot.Unknown10 = 1000;
+        packet.Slot.TotalRefreshTime = 1000;
+        packet.Slot.Quantity = item.Count;
+        packet.Slot.ForceDismount = true;
+        packet.Slot.Unknown15 = 1000;
+
+        connection.SendTunneled(packet);
+    }
+
     private static void DecrementItem(GatewayConnection connection, ClientItem item)
     {
         using DatabaseContext dbContext = _dbContextFactory.CreateDbContext();
@@ -54,9 +108,12 @@ public static class AbilityPacketClientRequestStartAbilityHandler
             return;
         }
 
+        // if item count is 0, remove from player items db
+        bool itemRemoved = false;
         if (item.Count <= 1)
         {
             dbContext.Items.Remove(dbItem);
+            itemRemoved = true;
         } else
         {
             dbItem.Count -= 1;
@@ -69,14 +126,16 @@ public static class AbilityPacketClientRequestStartAbilityHandler
             return;
         }
 
-        if (item.Count <= 1)
+        if (itemRemoved)
         {
             connection.Player.Items.Remove(item);
-
             connection.SendTunneled(new ClientUpdatePacketItemDelete
             {
                 ItemGuid = item.Id
             });
+
+            // then update action bar
+            HandleActionBarUpdate(connection, item, itemRemoved);
         } else
         {
             item.Count = dbItem.Count;

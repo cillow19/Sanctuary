@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,33 @@ public static class InventoryPacketItemActionBarAssignHandler
         _logger = loggerFactory.CreateLogger(nameof(InventoryPacketItemActionBarAssignHandler));
 
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
+    }
+
+    private static void ClearDuplicateAssignments(GatewayConnection connection, int packetGuid, int targetSlot)
+    {
+        Dictionary<int, int> actionBarSlots = connection.Player.ActionBarSlots;
+        List<int> duplicateSlots = actionBarSlots
+            .Where(x => x.Value == packetGuid && x.Key != targetSlot)
+            .Select(x => x.Key)
+            .ToList();
+
+        foreach (int duplicateSlot in duplicateSlots)
+        {
+            actionBarSlots.Remove(duplicateSlot);
+
+            connection.SendTunneled(new ClientUpdatePacketUpdateActionBarSlot
+            {
+                Data =
+                {
+                    Id = 2,
+                    Slot = duplicateSlot
+                },
+                Slot =
+                {
+                    IsEmpty = true
+                }
+            });
+        }
     }
 
     public static bool HandlePacket(GatewayConnection connection, ReadOnlySpan<byte> data)
@@ -66,6 +94,8 @@ public static class InventoryPacketItemActionBarAssignHandler
             _logger.LogWarning("User tried to equip unknown item definition. {guid} {definition}", packet.Guid, clientItem.Definition);
             return true;
         }
+
+        ClearDuplicateAssignments(connection, packet.Guid, packet.Slot);
 
         connection.Player.ActionBarSlots[packet.Slot] = packet.Guid;
 
