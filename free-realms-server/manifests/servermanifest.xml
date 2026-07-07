@@ -3,7 +3,7 @@
   <Name>Cat's Server</Name>
   <Description>Hee hee ha ha ho</Description>
 
-  <LoginServer>127.0.0.1:20042</LoginServer>
+  <LoginServer>api.osfr-cats-server.dev:20042</LoginServer>
   <LoginApiUrl>https://api.osfr-cats-server.dev:20260/auth/login</LoginApiUrl>
   <RegisterUrl>https://api.osfr-cats-server.dev:20260/auth/register</RegisterUrl>
 </ServerManifest>
