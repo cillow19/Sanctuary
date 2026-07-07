@@ -180,6 +180,9 @@ public class ResourceManager : IResourceManager
 
         if (!PointOfInterests.Load(PointOfInterestsFile))
             return false;
+        
+        if (!Abilities.Load(AbilitiesFile))
+            return false;
 
         return true;
     }
