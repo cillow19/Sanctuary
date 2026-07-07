@@ -4,6 +4,6 @@
   <Description>Hee hee ha ha ho</Description>
 
   <LoginServer>api.osfr-cats-server.dev:20042</LoginServer>
-  <WebApiUrl>https://api.osfr-cats-server.dev/auth/login</WebApiUrl>
+  <LoginApiUrl>https://api.osfr-cats-server.dev/auth/login</LoginApiUrl>
   <RegisterUrl>https://api.osfr-cats-server.dev/auth/register</RegisterUrl>
 </ServerManifest>
