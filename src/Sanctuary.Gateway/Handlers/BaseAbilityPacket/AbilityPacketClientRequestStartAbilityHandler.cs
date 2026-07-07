@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using Sanctuary.Core.Helpers;
+using Sanctuary.Database;
 using Sanctuary.Game;
 using Sanctuary.Game.Entities;
 using Sanctuary.Game.Resources.Definitions;
@@ -24,6 +27,7 @@ public static class AbilityPacketClientRequestStartAbilityHandler
 
     // Built at startup from ClientItemDefinitions: ActivatableAbilityId -> CompositeEffectId
     private static IResourceManager _resourceManager = null!;
+    private static IDbContextFactory<DatabaseContext> _dbContextFactory = null!;
 
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
@@ -31,6 +35,58 @@ public static class AbilityPacketClientRequestStartAbilityHandler
         _logger = loggerFactory.CreateLogger(nameof(AbilityPacketClientRequestStartAbilityHandler));
 
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
+        _dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>();
+    }
+
+    private static void DecrementItem(GatewayConnection connection, ClientItem item)
+    {
+        using DatabaseContext dbContext = _dbContextFactory.CreateDbContext();
+
+        ulong playerId = GuidHelper.GetPlayerId(connection.Player.Guid);
+        var dbItem = dbContext.Characters
+            .Where(x => x.Id == playerId)
+            .SelectMany(x => x.Items)
+            .SingleOrDefault(x => x.Id == item.Id);
+
+        if (dbItem == null)
+        {
+            _logger.LogWarning("Failed to find database item {id} to consume.", item.Id);
+            return;
+        }
+
+        if (item.Count <= 1)
+        {
+            dbContext.Items.Remove(dbItem);
+        } else
+        {
+            dbItem.Count -= 1;
+        }
+
+        int saveStatus = dbContext.SaveChanges();
+        if (saveStatus <= 0)
+        {
+            _logger.LogWarning("Failed to save item consumption for item {id}.", item.Id);
+            return;
+        }
+
+        if (item.Count <= 1)
+        {
+            connection.Player.Items.Remove(item);
+
+            connection.SendTunneled(new ClientUpdatePacketItemDelete
+            {
+                ItemGuid = item.Id
+            });
+        } else
+        {
+            item.Count = dbItem.Count;
+
+            connection.SendTunneled(new ClientUpdatePacketItemUpdate
+            {
+                ItemGuid = item.Id,
+                Count = item.Count
+            });
+        }
     }
 
     private static Player GetNearestPlayer(GatewayConnection connection) {
@@ -63,19 +119,16 @@ public static class AbilityPacketClientRequestStartAbilityHandler
                 Clear = false
             };
         }
-        else
+        return new PlayerUpdatePacketPlayCompositeEffect
         {
-            return new PlayerUpdatePacketPlayCompositeEffect
-            {
-                TargetPlayerGuid = originPlayerGuid,
-                OriginPlayerGuid = originPlayerGuid,
-                CompositeEffectId = compositeEffectId,
-                EffectDelay = 0,
-                Clear = false
-            };
-        }   
-        
+            TargetPlayerGuid = originPlayerGuid,
+            OriginPlayerGuid = originPlayerGuid,
+            CompositeEffectId = compositeEffectId,
+            EffectDelay = 0,
+            Clear = false
+        };   
     }
+
 
     public static bool HandlePacket(GatewayConnection connection, ReadOnlySpan<byte> data)
     {
@@ -112,8 +165,9 @@ public static class AbilityPacketClientRequestStartAbilityHandler
                         break;
                 }
 
-                if (effect is not null)
+                if (effect != null)
                 {
+                    DecrementItem(connection, item);
                     connection.Player.SendTunneledToVisible(effect, sendToSelf: true);
                     return true;
                 }
