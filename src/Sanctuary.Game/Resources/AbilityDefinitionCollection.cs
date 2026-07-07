@@ -51,6 +51,7 @@ public class AbilityDefinitionCollection : ObservableConcurrentDictionary<int, A
                     _logger.LogWarning("Failed to add entry. {id} \"{file}\"", entry.Id, filePath);
                     return false;
                 }
+                _logger.LogTrace("Added entry {id} \"{file}\"", entry.Id, filePath);
             }
         }
         catch (Exception ex)
