@@ -88,11 +88,11 @@ public static class AbilityPacketClientRequestStartAbilityHandler
          
         if (connection.Player.ActionBarSlots.TryGetValue(packet.Data.Slot, out var itemGuid))
         {
+            _logger.LogTrace("Slot {slot} -> Item {guid}", packet.Data.Slot, itemGuid);
             var item = connection.Player.Items.SingleOrDefault(x => x.Id == itemGuid);
             if (item != null && _resourceManager.Abilities.TryGetValue(item.Definition, out var abilityDefinition))
             {
                 _logger.LogTrace("Slot {slot} -> Item {guid} -> CompositeEffectId {effectId}", packet.Data.Slot, itemGuid, abilityDefinition.CompositeEffectId);
-
 
                 Player nearestPlayer = GetNearestPlayer(connection);
                 var effect = BuildPacket(connection, abilityDefinition);
