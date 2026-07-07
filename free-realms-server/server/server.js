@@ -4,8 +4,7 @@ import sqlite3pkg from "sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import routes from "../routes/routes.js";
-import authEndpoints, { setDatabase } from "../routes/authEndpoints.js";
+import routes, { setDatabase } from "../routes/routes.js";
 
 const app = express();
 const port = 20260;
