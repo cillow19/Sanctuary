@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -36,15 +35,15 @@ public class AbilityDefinitionCollection : ObservableConcurrentDictionary<int, A
                 PropertyNameCaseInsensitive = true
             };
 
-            var list = JsonSerializer.Deserialize<List<AbilityDefinition>>(fileStream, jsonSerializerOptions);
+            var file = JsonSerializer.Deserialize<AbilityDefinitionFile>(fileStream, jsonSerializerOptions);
 
-            if (list is null)
+            if (file is null)
             {
                 _logger.LogError("No entries found in file \"{file}\".", filePath);
                 return false;
             }
 
-            foreach (AbilityDefinition entry in list)
+            foreach (PartyAbilityDefinition entry in file.PartyAbilities)
             {
                 if (!TryAdd(entry.Id, entry))
                 {

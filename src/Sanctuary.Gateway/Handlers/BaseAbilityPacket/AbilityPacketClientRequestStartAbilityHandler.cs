@@ -46,12 +46,12 @@ public static class AbilityPacketClientRequestStartAbilityHandler
     }
 
 
-    private static PlayerUpdatePacketPlayCompositeEffect BuildPacket(GatewayConnection connection, AbilityDefinition abilityDefinition)
+    private static PlayerUpdatePacketPlayCompositeEffect HandlePartyAbility(GatewayConnection connection, PartyAbilityDefinition partyAbilityDefinition)
     {
         ulong originPlayerGuid = connection.Player.Guid;
 
-        int compositeEffectId = abilityDefinition.CompositeEffectId;
-        if (abilityDefinition.HasTarget)
+        int compositeEffectId = partyAbilityDefinition.CompositeEffectId;
+        if (partyAbilityDefinition.HasTarget)
         {
             Player nearestPlayer = GetNearestPlayer(connection);
             return new PlayerUpdatePacketPlayCompositeEffect
@@ -94,19 +94,29 @@ public static class AbilityPacketClientRequestStartAbilityHandler
             var item = connection.Player.Items.SingleOrDefault(x => x.Id == itemGuid);
             if (item != null && _resourceManager.Abilities.TryGetValue(item.Definition, out var abilityDefinition))
             {
-                _logger.LogTrace("Slot {slot} -> Item {guid} -> CompositeEffectId {effectId}", packet.Data.Slot, itemGuid, abilityDefinition.CompositeEffectId);
+                PlayerUpdatePacketPlayCompositeEffect? effect = null;
 
-                // if (!_resourceManager.Abilities.TryGetValue(abilityDefinition.Id, out var abilityDefinition))
-                // {
-                //     _logger.LogError("Failed to find ability definition for client item {id}.", abilityDefinition.Id);
-                //     return false;
-                // }
+                switch (abilityDefinition)
+                {
+                    case PartyAbilityDefinition partyAbility:
+                        _logger.LogTrace("Slot {slot} -> Item {guid} -> PartyAbility {abilityId}", packet.Data.Slot, itemGuid, partyAbility.AbilityId);
+                        effect = HandlePartyAbility(connection, partyAbility);
+                        break;
 
-                Player nearestPlayer = GetNearestPlayer(connection);
-                var effect = BuildPacket(connection, abilityDefinition);
+                    //case OtherAbility miscAbility:
+                    //    _logger.LogTrace("Slot {slot} -> Item {guid} -> Misc
+                    // ...
 
-                connection.Player.SendTunneledToVisible(effect, sendToSelf: true);
-                return true;
+                    default:
+                        _logger.LogWarning("Slot {slot} -> Item {guid} -> Unknown ability type {type}", packet.Data.Slot, itemGuid, abilityDefinition.GetType().Name);
+                        break;
+                }
+
+                if (effect is not null)
+                {
+                    connection.Player.SendTunneledToVisible(effect, sendToSelf: true);
+                    return true;
+                }
             } 
         }
         else
