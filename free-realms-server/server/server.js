@@ -4,7 +4,8 @@ import sqlite3pkg from "sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import routes, { setDatabase } from "../routes/routes.js";
+import manifestEndpoints from "../routes/manifestEndpoints.js";
+import authEndpoints, { setDatabase } from "../routes/authEndpoints.js";
 
 const app = express();
 const port = 20260;
@@ -39,7 +40,8 @@ app.get("/health", (req, res) => {
 });
 
 // Routes
-app.use("/", routes);
+app.use("/", manifestEndpoints);
+app.use("/auth", authEndpoints);
 
 
 app.listen(port, () => {

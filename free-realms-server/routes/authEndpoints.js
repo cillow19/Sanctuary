@@ -1,13 +1,8 @@
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 
 const router = express.Router();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 let db = null;
 
@@ -51,17 +46,6 @@ function validateRegisterRequest(data) {
   }
   return Object.keys(errors).length > 0 ? errors : null;
 }
-
-
-router.get("/clientmanifest.xml", (req, res) => {
-    res.setHeader("Content-Type", "text/xml");
-    res.sendFile(path.join(__dirname, "..", "manifests", "clientmanifest.xml"));
-});
-
-router.get("/servermanifest.xml", (req, res) => {
-    res.setHeader("Content-Type", "text/xml");
-    res.sendFile(path.join(__dirname, "..", "manifests", "servermanifest.xml"));
-});
 
 // POST /login
 router.post("/login", requireHttps, (req, res) => {
