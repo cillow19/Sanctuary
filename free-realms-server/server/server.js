@@ -26,7 +26,7 @@ const db = new sqlite3.Database(dbFile, (err) => {
 setDatabase(db);
 
 const corsOptions = {
-  origin: 'http://localhost:8080',
+  origin: 'https://osfr-cats-server.dev', // Allow requests from this origin
   optionsSuccessStatus: 200 // Some legacy browsers (IE11, various mobile) choke on 204
 };
 
@@ -45,5 +45,5 @@ app.use("/auth", authEndpoints);
 
 
 app.listen(port, () => {
-    console.log(`Auth server running at http://localhost:${port}`);
+    console.log(`Auth server running at port ${port}`);
 });

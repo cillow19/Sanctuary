@@ -4,10 +4,16 @@ import { randomUUID } from "crypto";
 
 const router = express.Router();
 
-// Inject db via middleware from server.js
 let db = null;
+
 export function setDatabase(database) {
   db = database;
+}
+
+function requireHttps(req, res, next) {
+  const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
+  if (!isSecure) return res.status(426).json({ error: "HTTPS required" });
+  next();
 }
 
 // Helper to generate UUID
@@ -42,7 +48,7 @@ function validateRegisterRequest(data) {
 }
 
 // POST /login
-router.post("/login", (req, res) => {
+router.post("/login", requireHttps, (req, res) => {
   const errors = validateLoginRequest(req.body);
   if (errors) {
     return res.status(400).json({ errors });
@@ -60,7 +66,7 @@ router.post("/login", (req, res) => {
       }
 
       if (!dbUser) {
-        console.warn(`Login failed, user not found for username: ${username}`);
+        console.warn(`Login failed, user not found`);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
@@ -68,7 +74,7 @@ router.post("/login", (req, res) => {
       try {
         const isPasswordValid = await bcrypt.compare(password, dbUser.Password);
         if (!isPasswordValid) {
-          console.warn(`Login failed, invalid password for username: ${username}`);
+          console.warn(`Login failed, invalid password`);
           return res.status(401).json({ error: "Invalid credentials" });
         }
       } catch (bcryptErr) {
@@ -85,7 +91,7 @@ router.post("/login", (req, res) => {
         [sessionId, now, dbUser.Id],
         (updateErr) => {
           if (updateErr) {
-            console.error("Failed to update session info for username:", username, updateErr);
+            console.error("Failed to update session info:", updateErr);
             return res.status(500).json({ error: "Internal server error" });
           }
 
@@ -100,7 +106,7 @@ router.post("/login", (req, res) => {
 });
 
 // POST /register
-router.post("/register", (req, res) => {
+router.post("/register", requireHttps, (req, res) => {
   const errors = validateRegisterRequest(req.body);
   if (errors) {
     return res.status(400).json({ errors });
@@ -125,7 +131,7 @@ router.post("/register", (req, res) => {
 
       // Hash password with BCrypt
       try {
-        const salt = await bcrypt.genSalt(10);
+        const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         db.run(
