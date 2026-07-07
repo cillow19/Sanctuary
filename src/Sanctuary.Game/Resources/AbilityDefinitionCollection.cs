@@ -10,7 +10,7 @@ using Sanctuary.Game.Resources.Definitions;
 
 namespace Sanctuary.Game.Resources;
 
-public class AbilityDefinitionCollection : ObservableConcurrentDictionary<int, AbilityDefinitions>
+public class AbilityDefinitionCollection : ObservableConcurrentDictionary<int, AbilityDefinition>
 {
     private readonly ILogger _logger;
 
@@ -36,7 +36,7 @@ public class AbilityDefinitionCollection : ObservableConcurrentDictionary<int, A
                 PropertyNameCaseInsensitive = true
             };
 
-            var list = JsonSerializer.Deserialize<List<AbilityDefinitions>>(fileStream, jsonSerializerOptions);
+            var list = JsonSerializer.Deserialize<List<AbilityDefinition>>(fileStream, jsonSerializerOptions);
 
             if (list is null)
             {
@@ -44,7 +44,7 @@ public class AbilityDefinitionCollection : ObservableConcurrentDictionary<int, A
                 return false;
             }
 
-            foreach (var entry in list)
+            foreach (AbilityDefinition entry in list)
             {
                 if (!TryAdd(entry.Id, entry))
                 {
