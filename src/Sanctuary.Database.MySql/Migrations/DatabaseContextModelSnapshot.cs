@@ -139,6 +139,9 @@ namespace Sanctuary.Database.MySql.Migrations
                     b.Property<int?>("ModelCustomizationId")
                         .HasColumnType("int");
 
+                    b.Property<int>("PlayTime")
+                        .HasColumnType("int");
+
                     b.Property<float?>("PositionX")
                         .HasColumnType("float");
 
