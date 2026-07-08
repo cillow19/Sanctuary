@@ -54,7 +54,7 @@ public static class CharacterSelectInfoRequestHandler
             .AsSplitQuery()
             .ToList();
 
-        characterSelectInfoReply.Status = characters.Count == 0 ? 2 : 1;
+        characterSelectInfoReply.Status = 1;
 
         foreach (var character in characters)
         {
