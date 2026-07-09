@@ -40,7 +40,8 @@ public sealed class Player : ClientPcData, IEntity
     public bool IsMod { get; set; }
     public DateTimeOffset? MutedUntil { get; set; }
 
-    public ClientPcProfile ActiveProfile => Profiles.Single(x => x.Id == ActiveProfileId);
+    public ClientPcProfile ActiveProfile =>
+        Profiles.FirstOrDefault(x => x.Id == ActiveProfileId) ?? Profiles.First();
 
     public Mount? Mount { get; set; }
 
@@ -285,7 +286,7 @@ public sealed class Player : ClientPcData, IEntity
             SendTunneled(playerUpdatePacketAddNpc);
         }
 
-        /* var playerUpdatePacketNpcRelevance = new PlayerUpdatePacketNpcRelevance();
+        var playerUpdatePacketNpcRelevance = new PlayerUpdatePacketNpcRelevance();
 
         foreach (var npc in npcs)
         {
@@ -296,8 +297,7 @@ public sealed class Player : ClientPcData, IEntity
             {
                 Guid = npc.Guid,
                 HasCursor = true,
-                CursorId = npc.CursorId,
-                Unknown2 = false
+                CursorId = npc.CursorId
             });
         }
 
@@ -312,12 +312,13 @@ public sealed class Player : ClientPcData, IEntity
                 continue;
 
             playerUpdatePacketAddNotifications.Notifications.Add(npc.Notification);
-
-            SendTunneled(playerUpdatePacketAddNotifications);
         }
 
+        if (playerUpdatePacketAddNotifications.Notifications.Count > 0)
+            SendTunneled(playerUpdatePacketAddNotifications);
+
         foreach (var npc in npcs)
-            VisibleNpcs.TryAdd(npc.Guid, npc); */
+            VisibleNpcs.TryAdd(npc.Guid, npc);
     }
 
     public void OnAddVisiblePlayers(params IEnumerable<Player> players)
