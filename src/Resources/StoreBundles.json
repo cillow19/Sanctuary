@@ -40976,32 +40976,5 @@
     "CategoryGroupId": 96,
     "SkuId": 1,
     "MemberDiscount": 10
-  },
-   {
-    "Comment": "Party Popper",
-    "LaunchTime": "2009-04-11T07:16:53+00:00",
-    "ExpireTime": "2090-01-01T08:00:00+00:00",
-    "Image": {
-      "Image": "4339",
-      "Tint": "263"
-    },
-    "Entries": [
-      {
-        "Quantity": 5,
-        "GameItemId": 62529,
-        "MarketingItemId": 62529
-      }
-    ],
-    "Id": 99006,
-    "NameId": 407420,
-    "DescriptionId": 407422,
-    "Status": 1,
-    "CurrencyType": 1,
-    "Price": 50,
-    "AltCurrencyPrice": 50,
-    "StoreId": 1,
-    "CategoryGroupId": 96,
-    "SkuId": 1,
-    "MemberDiscount": 10
   }
 ]
