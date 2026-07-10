@@ -41,17 +41,18 @@ public static class AbilityPacketClientRequestStartAbilityHandler
     private static void HandleActionBarUpdate(GatewayConnection connection, ClientItem item, bool isDeleted)
     {
         Dictionary<int, int> actionBarSlots = connection.Player.ActionBarSlots;
-        var slotWithItem = actionBarSlots
+        int? foundSlot = actionBarSlots
             .Where(slot => slot.Value == item.Id)
-            .Select(slot => slot.Key)
+            .Select(slot => (int?)slot.Key)
             .SingleOrDefault();
 
-        if (slotWithItem == default)
+        if (foundSlot == null)
         {
             _logger.LogWarning("Failed to find action bar slot for item {id}.", item.Id);
             return;
         }
 
+        int slotWithItem = foundSlot.Value;
         int clientActionBarId = 2;
         ClientUpdatePacketUpdateActionBarSlot packet = new ClientUpdatePacketUpdateActionBarSlot
         {
