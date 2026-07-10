@@ -116,7 +116,7 @@ public static class AbilityPacketClientRequestStartAbilityHandler
             itemRemoved = true;
         } else
         {
-            dbItem.Count -= 1;
+            --dbItem.Count;
         }
 
         int saveStatus = dbContext.SaveChanges();
@@ -134,8 +134,7 @@ public static class AbilityPacketClientRequestStartAbilityHandler
                 ItemGuid = item.Id
             });
 
-            // then update action bar
-            HandleActionBarUpdate(connection, item, itemRemoved);
+            
         } else
         {
             item.Count = dbItem.Count;
@@ -146,6 +145,9 @@ public static class AbilityPacketClientRequestStartAbilityHandler
                 Count = item.Count
             });
         }
+
+        // then update action bar
+        HandleActionBarUpdate(connection, item, itemRemoved);
     }
 
     private static Player GetNearestPlayer(GatewayConnection connection) {
