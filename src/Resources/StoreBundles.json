@@ -40865,7 +40865,7 @@
     "Price": 50,
     "AltCurrencyPrice": 50,
     "StoreId": 1,
-    "CategoryGroupId": 48,
+    "CategoryGroupId": 96,
     "SkuId": 1,
     "MemberDiscount": 10
   },
@@ -40892,7 +40892,7 @@
     "Price": 50,
     "AltCurrencyPrice": 50,
     "StoreId": 1,
-    "CategoryGroupId": 48,
+    "CategoryGroupId": 96,
     "SkuId": 1,
     "MemberDiscount": 10
   },
@@ -40919,7 +40919,7 @@
     "Price": 50,
     "AltCurrencyPrice": 50,
     "StoreId": 1,
-    "CategoryGroupId": 48,
+    "CategoryGroupId": 96,
     "SkuId": 1,
     "MemberDiscount": 10
   },
@@ -40946,7 +40946,7 @@
     "Price": 50,
     "AltCurrencyPrice": 50,
     "StoreId": 1,
-    "CategoryGroupId": 48,
+    "CategoryGroupId": 96,
     "SkuId": 1,
     "MemberDiscount": 10
   },
@@ -40973,7 +40973,7 @@
     "Price": 50,
     "AltCurrencyPrice": 50,
     "StoreId": 1,
-    "CategoryGroupId": 48,
+    "CategoryGroupId": 96,
     "SkuId": 1,
     "MemberDiscount": 10
   },
@@ -41000,7 +41000,7 @@
     "Price": 50,
     "AltCurrencyPrice": 50,
     "StoreId": 1,
-    "CategoryGroupId": 48,
+    "CategoryGroupId": 96,
     "SkuId": 1,
     "MemberDiscount": 10
   }
