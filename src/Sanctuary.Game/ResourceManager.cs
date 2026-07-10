@@ -43,6 +43,8 @@ public class ResourceManager : IResourceManager
     public static readonly string PlayerTitlesFile = Path.Combine(BaseDirectory, "PlayerTitles.json");
     public static readonly string PointOfInterestsFile = Path.Combine(BaseDirectory, "PointOfInterests.json");
     public static readonly string AbilitiesFile = Path.Combine(BaseDirectory, "Abilities.json");
+    public static readonly string NpcsFile = Path.Combine(BaseDirectory, "Npcs.json");
+    public static readonly string NameFilterFile = Path.Combine(BaseDirectory, "NameFilter.txt");
 
     public IdToStringLookup HairMappings { get; }
     public IdToStringLookup HeadMappings { get; }
@@ -73,6 +75,8 @@ public class ResourceManager : IResourceManager
     public QuickChatDefinitionCollection QuickChats { get; }
     public PointOfInterestDefinitionCollection PointOfInterests { get; }
     public AbilityDefinitionCollection Abilities { get; }
+    public NpcDefinitionCollection Npcs { get; }
+    public NameFilterCollection NameFilter { get; }
 
     public ResourceManager(ILogger<ResourceManager> logger)
     {
@@ -111,10 +115,15 @@ public class ResourceManager : IResourceManager
         PlayerTitles = new(_logger);
         PointOfInterests = new(_logger);
         Abilities = new(_logger);
+        Npcs = new(_logger);
+        NameFilter = new(_logger);
     }
 
     public bool Load()
     {
+        if (!NameFilter.Load(NameFilterFile))
+            return false;
+
         if (!HairMappings.Load(HairMappingsFile))
             return false;
 
@@ -184,6 +193,9 @@ public class ResourceManager : IResourceManager
         if (!Abilities.Load(AbilitiesFile))
             return false;
 
+        if (!Npcs.Load(NpcsFile))
+            return false;
+
         return true;
     }
 
@@ -242,6 +254,10 @@ public class ResourceManager : IResourceManager
                 loaded = PointOfInterests.Load(PointOfInterestsFile);
             else if (e.FullPath == AbilitiesFile)
                 loaded = Abilities.Load(AbilitiesFile);
+            else if (e.FullPath == NpcsFile)
+                loaded = Npcs.Load(NpcsFile);
+            else if (e.FullPath == NameFilterFile)
+                loaded = NameFilter.Load(NameFilterFile);
             else
                 _logger.LogWarning("Unknown file changed. File: {filepath}", e.FullPath);
 
