@@ -57,6 +57,8 @@ public sealed class Player : ClientPcData, IEntity
 
     public int TimezoneOffset { get; set; }
 
+    public Dictionary<int, int> ActionBarSlots { get; } = new();
+
     public Vector4 StartingZonePosition { get; set; }
     public Quaternion StartingZoneRotation { get; set; }
 

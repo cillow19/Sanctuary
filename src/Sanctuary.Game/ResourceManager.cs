@@ -42,6 +42,7 @@ public class ResourceManager : IResourceManager
     public static readonly string QuickChatsFile = Path.Combine(BaseDirectory, "QuickChats.json");
     public static readonly string PlayerTitlesFile = Path.Combine(BaseDirectory, "PlayerTitles.json");
     public static readonly string PointOfInterestsFile = Path.Combine(BaseDirectory, "PointOfInterests.json");
+    public static readonly string AbilitiesFile = Path.Combine(BaseDirectory, "Abilities.json");
     public static readonly string NpcsFile = Path.Combine(BaseDirectory, "Npcs.json");
     public static readonly string NameFilterFile = Path.Combine(BaseDirectory, "NameFilter.txt");
 
@@ -73,6 +74,7 @@ public class ResourceManager : IResourceManager
     public ProfileDefinitionCollection Profiles { get; }
     public QuickChatDefinitionCollection QuickChats { get; }
     public PointOfInterestDefinitionCollection PointOfInterests { get; }
+    public AbilityDefinitionCollection Abilities { get; }
     public NpcDefinitionCollection Npcs { get; }
     public NameFilterCollection NameFilter { get; }
 
@@ -112,6 +114,7 @@ public class ResourceManager : IResourceManager
         QuickChats = new(_logger);
         PlayerTitles = new(_logger);
         PointOfInterests = new(_logger);
+        Abilities = new(_logger);
         Npcs = new(_logger);
         NameFilter = new(_logger);
     }
@@ -186,6 +189,9 @@ public class ResourceManager : IResourceManager
 
         if (!PointOfInterests.Load(PointOfInterestsFile))
             return false;
+        
+        if (!Abilities.Load(AbilitiesFile))
+            return false;
 
         if (!Npcs.Load(NpcsFile))
             return false;
@@ -246,6 +252,8 @@ public class ResourceManager : IResourceManager
                 loaded = PlayerTitles.Load(PlayerTitlesFile);
             else if (e.FullPath == PointOfInterestsFile)
                 loaded = PointOfInterests.Load(PointOfInterestsFile);
+            else if (e.FullPath == AbilitiesFile)
+                loaded = Abilities.Load(AbilitiesFile);
             else if (e.FullPath == NpcsFile)
                 loaded = Npcs.Load(NpcsFile);
             else if (e.FullPath == NameFilterFile)
