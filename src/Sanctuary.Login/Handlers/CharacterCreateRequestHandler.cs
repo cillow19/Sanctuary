@@ -238,7 +238,7 @@ public static class CharacterCreateRequestHandler
 
             Gender = model.Gender,
 
-            MembershipStatus = dbUser.IsMember ? 2 : 0,
+            MembershipStatus = 2,
 
             UserId = connection.UserId
         };
