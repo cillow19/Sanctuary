@@ -99,7 +99,8 @@ public static class AuthEndpoints
         var dbUser = new DbUser
         {
             Username = request.Username,
-            Password = hashedPassword
+            Password = hashedPassword,
+            IsMember = true
         };
 
         await databaseContext.Users.AddAsync(dbUser, cancellationToken);
