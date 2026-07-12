@@ -135,7 +135,7 @@ router.post("/register", requireHttps, (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         db.run(
-          "INSERT INTO Users (Username, Password) VALUES (?, ?)",
+          "INSERT INTO Users (Username, Password, IsMember) VALUES (?, ?, 1)",
           [username, hashedPassword],
           (insertErr) => {
             if (insertErr) {
@@ -143,7 +143,7 @@ router.post("/register", requireHttps, (req, res) => {
               return res.status(500).json({ error: "Internal server error" });
             }
 
-            return res.json({ success: true });
+            return res.json({ message: "Account Created" });
           }
         );
       } catch (bcryptErr) {
