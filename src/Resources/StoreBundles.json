@@ -40867,7 +40867,8 @@
     "StoreId": 1,
     "CategoryGroupId": 96,
     "SkuId": 1,
-    "MemberDiscount": 10
+    "MemberDiscount": 10,
+    "MaxPerOrder": 99
   },
   {
     "Comment": "Blue Silly String Can",
@@ -40894,7 +40895,8 @@
     "StoreId": 1,
     "CategoryGroupId": 96,
     "SkuId": 1,
-    "MemberDiscount": 10
+    "MemberDiscount": 10,
+    "MaxPerOrder": 99
   },
   {
     "Comment": "Green Silly String Can",
@@ -40921,7 +40923,8 @@
     "StoreId": 1,
     "CategoryGroupId": 96,
     "SkuId": 1,
-    "MemberDiscount": 10
+    "MemberDiscount": 10,
+    "MaxPerOrder": 99
   },
   {
     "Comment": "Orange Silly String Can",
@@ -40948,7 +40951,8 @@
     "StoreId": 1,
     "CategoryGroupId": 96,
     "SkuId": 1,
-    "MemberDiscount": 10
+    "MemberDiscount": 10,
+    "MaxPerOrder": 99
   },
   {
     "Comment": "Yellow Silly String Can",
@@ -40975,6 +40979,7 @@
     "StoreId": 1,
     "CategoryGroupId": 96,
     "SkuId": 1,
-    "MemberDiscount": 10
+    "MemberDiscount": 10,
+    "MaxPerOrder": 99
   }
 ]
