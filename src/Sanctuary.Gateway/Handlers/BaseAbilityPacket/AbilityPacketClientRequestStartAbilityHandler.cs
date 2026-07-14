@@ -152,15 +152,18 @@ public static class AbilityPacketClientRequestStartAbilityHandler
     }
 
     private static Player GetNearestPlayer(GatewayConnection connection) {
+        const float MaxNearestPlayerDistanceMeters = 30f * 0.3048f; 
         Vector4 playerPosition = connection.Player.Position;
-        var nearestPlayer = connection.Player.VisiblePlayers.Values.MinBy(p => Vector4.Distance(p.Position, playerPosition));
+        var nearestPlayer = connection.Player.VisiblePlayers.Values
+            .Where(p => Vector4.Distance(p.Position, playerPosition) <= MaxNearestPlayerDistanceMeters)
+            .MinBy(p => Vector4.Distance(p.Position, playerPosition));
         if (nearestPlayer is not null)
         {
             _logger.LogTrace("Found another player");
             return nearestPlayer;
         }
         _logger.LogTrace("No visible players found for player {guid}, using self as nearest.", connection.Player.Guid);
-        return connection.Player; 
+        return connection.Player;
     }
 
 
