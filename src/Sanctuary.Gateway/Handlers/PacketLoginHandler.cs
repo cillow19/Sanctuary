@@ -191,14 +191,14 @@ public static class PacketLoginHandler
         }
 
         
-        if (character.User.IsMod)
+        if (character.User.IsMod || character.User.IsAdmin)
         {
             
             AddRefereeToProfile(character, dbContext);
         }
         else
         {
-            // if user is no longer a mod, remove referee profile user has one
+            // if user is no longer a mod, remove referee profile 
             RemoveRefereeFromProfile(character, dbContext);
         }
 #if !DEBUG
