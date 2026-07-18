@@ -42,7 +42,7 @@ public static class PacketLoginHandler
 
     private static void AddRefereeToProfile(DbCharacter character, DatabaseContext dbContext)
     {
-        const int refereeId = 138;
+        const int refereeId = 58;
         if (!_resourceManager.Profiles.ContainsKey(refereeId))
         {
             _logger.LogWarning("Referee profile with ID {refereeId} does not exist in the resource manager.", refereeId);
@@ -71,7 +71,7 @@ public static class PacketLoginHandler
 
     private static void RemoveRefereeFromProfile(DbCharacter character, DatabaseContext dbContext)
     {
-        const int refereeId = 138;
+        const int refereeId = 58;
         dbContext.Profiles.Where(p => p.CharacterId == character.Id && p.Id == refereeId).ExecuteDelete();
         dbContext.SaveChanges();
         var profileToRemove = character.Profiles.Where(p => p.CharacterId == character.Id && p.Id == refereeId)
@@ -79,6 +79,47 @@ public static class PacketLoginHandler
         if (profileToRemove != null)
         {
             character.Profiles.Remove(profileToRemove);
+        }
+    }
+
+    private static void AddRefereeToTitle(DbCharacter character, DatabaseContext dbContext)
+    {
+        const int refereeTitleId = 91;
+        if (!_resourceManager.PlayerTitles.ContainsKey(refereeTitleId))
+        {
+            _logger.LogWarning("Referee title with ID {refereeTitleId} does not exist in the resource manager.", refereeTitleId);
+            return;
+        }
+
+        // Check if the character already has the referee title
+        if (character.Titles.Any(t => t.Id == refereeTitleId))
+        {
+            _logger.LogInformation("Character {characterId} already has the referee title.", character.Id);
+            return;
+        }
+
+        DbTitle refereeTitle = new DbTitle
+        {
+            CharacterId = character.Id,
+            Id = refereeTitleId
+        };
+
+        dbContext.Titles.Add(refereeTitle);
+        dbContext.SaveChanges();
+        character.Titles.Add(refereeTitle);
+        return;
+    }
+
+    private static void RemoveRefereeFromTitle(DbCharacter character, DatabaseContext dbContext)
+    {
+        const int refereeTitleId = 91;
+        dbContext.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId).ExecuteDelete();
+        dbContext.SaveChanges();
+        string titleToRemove = character.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId)
+        .FirstOrDefault(t => t.Id == refereeTitleId);
+        if (titleToRemove != null)
+        {
+            character.Titles.Remove(titleToRemove);
         }
     }
 
@@ -193,13 +234,15 @@ public static class PacketLoginHandler
         
         if (character.User.IsMod || character.User.IsAdmin)
         {
-            
+
             AddRefereeToProfile(character, dbContext);
+            AddRefereeToTitle(character, dbContext);
         }
         else
         {
-            // if user is no longer a mod, remove referee profile 
+            // if user is no longer a mod, remove referee profile
             RemoveRefereeFromProfile(character, dbContext);
+            RemoveRefereeFromTitle(character, dbContext);
         }
 #if !DEBUG
         var result = dbContext.Characters
