@@ -115,7 +115,7 @@ public static class PacketLoginHandler
         const int refereeTitleId = 91;
         dbContext.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId).ExecuteDelete();
         dbContext.SaveChanges();
-        string titleToRemove = character.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId)
+        var titleToRemove = character.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId)
         .FirstOrDefault(t => t.Id == refereeTitleId);
         if (titleToRemove != null)
         {
