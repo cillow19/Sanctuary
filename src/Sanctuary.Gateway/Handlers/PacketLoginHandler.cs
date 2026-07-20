@@ -234,7 +234,6 @@ public static class PacketLoginHandler
         
         if (character.User.IsMod || character.User.IsAdmin)
         {
-
             AddRefereeToProfile(character, dbContext);
             AddRefereeToTitle(character, dbContext);
         }
