@@ -42,6 +42,11 @@ public static class CommandPacketSetProfileHandler
 
         connection.Player.ActiveProfileId = packet.Id;
 
+        // EXPERIMENT: testing whether resending AddPc (with IsReferee re-applied) on
+        // profile switch is what makes referee color persist across jobs.
+        // Remove once confirmed either way.
+        connection.Player.SendTunneledToVisible(connection.Player.GetAddPcPacket(), sendToSelf: true);
+
         var clientUpdatePacketActivateProfile = new ClientUpdatePacketActivateProfile();
 
         using var packetWriter = new PacketWriter();
