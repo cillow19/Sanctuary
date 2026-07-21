@@ -264,7 +264,7 @@ public class GatewayConnection : UdpConnection
             // EXPERIMENT: testing whether Unknown11 is the persistent referee/GM color flag.
             // Remove once confirmed either way.
             if (dbCharacter.User.IsMod || dbCharacter.User.IsAdmin)
-                clientPcProfile.Unknown11 = true;
+                clientPcProfile.Unknown14 = true;
 
             clientPcProfile.Rank = dbProfile.Level;
             clientPcProfile.RankPercent = dbProfile.LevelXP;
