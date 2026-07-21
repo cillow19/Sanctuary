@@ -479,7 +479,6 @@ public sealed class Player : ClientPcData, IEntity
 
     public PlayerUpdatePacketAddPc GetAddPcPacket()
     {
-        int refereeProfileId = 138;
         bool isReferee = IsMod || IsAdmin;
         var packet = new PlayerUpdatePacketAddPc
         {

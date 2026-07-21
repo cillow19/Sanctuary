@@ -1773,11 +1773,11 @@
   {
     "Comment": "Referee",
     "Id": 58,
-    "NameId": 126387230,
+    "NameId": 900100,
     "DescriptionId": 9998,
     "Type": 9,
     "Icon": 258,
-    "BadgeImageSet": 4850,
+    "BadgeImageSet": 19,
     "ButtonImageSet": 21,
     "AbilityBgImageSet": 4,
     "Hint": 416472,

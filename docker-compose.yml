@@ -4,6 +4,8 @@ services:
     build:
       context: ./src
       dockerfile: Docker/Sanctuary.Login.dockerfile
+      args:
+        BUILD_CONFIGURATION: Debug
     restart: unless-stopped
     ports:
       - "20041:20041/udp"
@@ -17,12 +19,15 @@ services:
       - Database__VersionString=3.0.0-sqlite
       - Database__ConnectionString=Data Source=/data/sanctuary.db;
       - Server__LoginGatewayAddress=sanctuary.login:20041
+      - DOTNET_ENVIRONMENT=Development
 
   sanctuary.gateway:
     image: ${DOCKER_REGISTRY-}sanctuary-gateway
     build:
       context: ./src
       dockerfile: Docker/Sanctuary.Gateway.dockerfile
+      args:
+        BUILD_CONFIGURATION: Debug
     restart: unless-stopped
     ports:
       - "20260:20260/udp"
@@ -35,6 +40,7 @@ services:
       - Database__VersionString=3.0.0-sqlite
       - Database__ConnectionString=Data Source=/data/sanctuary.db;
       - Server__LoginGatewayAddress=sanctuary.login:20041
+      - DOTNET_ENVIRONMENT=Development
     depends_on:
       - sanctuary.login
 
