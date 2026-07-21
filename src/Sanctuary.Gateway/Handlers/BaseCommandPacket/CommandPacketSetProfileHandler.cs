@@ -44,11 +44,6 @@ public static class CommandPacketSetProfileHandler
 
         var clientUpdatePacketActivateProfile = new ClientUpdatePacketActivateProfile();
 
-        // EXPERIMENT: testing whether the previously-unused trailing int is a referee/GM flag.
-        // Remove once confirmed either way.
-        if (connection.Player.IsMod || connection.Player.IsAdmin)
-            clientUpdatePacketActivateProfile.Unused = 1;
-
         using var packetWriter = new PacketWriter();
 
         profile.Serialize(packetWriter);

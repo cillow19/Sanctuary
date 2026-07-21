@@ -17,8 +17,7 @@ public class ClientUpdatePacketActivateProfile : BaseClientUpdatePacket, ISerial
     public int Animation;
     public int CompositeEffect;
 
-    // EXPERIMENT: was private/always-zero; opened up to test as a possible referee/GM flag.
-    public int Unused = default;
+    private int Unused = default;
 
     public ClientUpdatePacketActivateProfile() : base(OpCode)
     {
