@@ -261,17 +261,6 @@ public class GatewayConnection : UdpConnection
 
             clientPcProfile.ItemClasses = profileData.ItemClasses;
 
-            // EXPERIMENT: testing whether any of the remaining unidentified profile ints
-            // are the persistent referee/GM color flag. Remove once confirmed either way.
-            if (dbCharacter.User.IsMod || dbCharacter.User.IsAdmin)
-            {
-                clientPcProfile.Unknown12 = 1;
-                clientPcProfile.Unknown13 = 1;
-                clientPcProfile.Unknown15 = 1;
-                clientPcProfile.Unknown20 = 1;
-                clientPcProfile.Unknown21 = 1;
-            }
-
             clientPcProfile.Rank = dbProfile.Level;
             clientPcProfile.RankPercent = dbProfile.LevelXP;
 

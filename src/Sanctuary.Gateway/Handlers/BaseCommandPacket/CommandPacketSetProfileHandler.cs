@@ -46,7 +46,25 @@ public static class CommandPacketSetProfileHandler
 
         using var packetWriter = new PacketWriter();
 
-        profile.Serialize(packetWriter);
+        // The client colors a name pink only while its reported active profile equals this id,
+        // recomputed on every switch - not a persistent per-player flag. Staff report this id
+        // for the switched-to profile's data so the color survives switching jobs, while the
+        // cached profile object (and everything else server-side) keeps its real id.
+        const int refereeProfileId = 58;
+        bool isReferee = connection.Player.IsMod || connection.Player.IsAdmin;
+        int realProfileId = profile.Id;
+
+        if (isReferee)
+            profile.Id = refereeProfileId;
+
+        try
+        {
+            profile.Serialize(packetWriter);
+        }
+        finally
+        {
+            profile.Id = realProfileId;
+        }
 
         clientUpdatePacketActivateProfile.Payload = packetWriter.Buffer;
 

@@ -477,6 +477,11 @@ public sealed class Player : ClientPcData, IEntity
         };
     }
 
+    // The client only colors a name pink while its reported active profile equals this id,
+    // recomputed on every profession switch - it is not a persistent per-player flag. Staff
+    // are reported as always being on this profile so the color survives switching jobs.
+    private const int RefereeProfileId = 58;
+
     public PlayerUpdatePacketAddPc GetAddPcPacket()
     {
         bool isReferee = IsMod || IsAdmin;
@@ -516,7 +521,7 @@ public sealed class Player : ClientPcData, IEntity
 
             // playerUpdatePacketAddPc.TemporaryAppearance = 277;
 
-            ActiveProfileId = ActiveProfileId,
+            ActiveProfileId = isReferee ? RefereeProfileId : ActiveProfileId,
 
             MountQueuePosition = -1,
             MountSeat = -1,
