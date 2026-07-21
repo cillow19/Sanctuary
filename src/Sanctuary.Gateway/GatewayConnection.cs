@@ -138,17 +138,6 @@ public class GatewayConnection : UdpConnection
             Payload = packet.Serialize()
         };
 
-        // TEMP DIAGNOSTIC: remove once the referee color persistence issue is resolved.
-        if (packet is PlayerUpdatePacketAddPc or ClientUpdatePacketActivateProfile)
-        {
-            _logger.LogInformation(
-                "[PacketCapture] {type} -> {guid} ( ActiveProfileId: {activeProfileId} ) Hex: {hex}",
-                packet.GetType().Name,
-                Player?.Guid,
-                Player?.ActiveProfileId,
-                Convert.ToHexString(packetTunneled.Payload));
-        }
-
         Send(packetTunneled, reliable, secure);
     }
 
