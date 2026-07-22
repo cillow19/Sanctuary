@@ -313,6 +313,11 @@ public class GatewayConnection : UdpConnection
 
         Player.ActiveProfileId = dbCharacter.ActiveProfileId;
 
+        const int refereeProfileId = 58;
+
+        if ((dbCharacter.User.IsMod || dbCharacter.User.IsAdmin) && Player.Profiles.Any(x => x.Id == refereeProfileId))
+            Player.ActiveProfileId = refereeProfileId;
+
         foreach (var dbItem in dbCharacter.Items)
         {
             Player.Items.Add(new ClientItem
