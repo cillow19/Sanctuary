@@ -75,6 +75,12 @@ public static class CommandPacketSetProfileHandler
 
         connection.SendTunneled(clientUpdatePacketActivateProfile);
 
+        // EXPERIMENT: testing whether resending the full (unspoofed) self data repairs the
+        // client's cached Referee menu entry after the spoofed activation above. Remove if
+        // this doesn't help or causes other visible side effects (position/camera reset etc).
+        if (isReferee)
+            connection.SendSelfToClient();
+
         var playerUpdatePacketEquippedItemsChange = new PlayerUpdatePacketEquippedItemsChange();
 
         playerUpdatePacketEquippedItemsChange.Guid = connection.Player.Guid;
