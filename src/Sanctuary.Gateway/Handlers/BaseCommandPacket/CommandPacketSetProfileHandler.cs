@@ -65,6 +65,11 @@ public static class CommandPacketSetProfileHandler
 
         connection.Player.SendTunneledToVisible(playerUpdatePacketEquippedItemsChange);
 
+        bool isReferee = connection.Player.IsMod || connection.Player.IsAdmin;
+
+        if (isReferee)
+            connection.Player.SendTunneledToVisible(connection.Player.GetAddPcPacket());
+
         var friendStatusPacket = new FriendStatusPacket
         {
             Guid = connection.Player.Guid,
