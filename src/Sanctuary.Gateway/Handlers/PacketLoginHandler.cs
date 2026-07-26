@@ -286,6 +286,17 @@ public static class PacketLoginHandler
         // AnnoucementDataSendPacket
         // AchievementObjectiveActivatedPacket - Part 2?
 
+        if (character.User.IsMod || character.User.IsAdmin)
+        {
+            var activeProfile = connection.Player.Profiles.FirstOrDefault(x => x.Id == connection.Player.ActiveProfileId);
+
+            // Silently "reactivate" the character's own current profile so the client sees an
+            // activation event at login (same mechanism a real switch uses) and sets the
+            // referee color bit, without any visible animation/effect playing.
+            if (activeProfile is not null)
+                connection.SendActivateProfile(activeProfile, animation: 0, compositeEffect: 0);
+        }
+
         connection.SendSelfToClient();
 
         return true;

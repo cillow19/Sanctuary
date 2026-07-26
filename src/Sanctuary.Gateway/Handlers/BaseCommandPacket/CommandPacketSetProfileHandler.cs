@@ -42,46 +42,20 @@ public static class CommandPacketSetProfileHandler
 
         connection.Player.ActiveProfileId = packet.Id;
 
-        var clientUpdatePacketActivateProfile = new ClientUpdatePacketActivateProfile();
+        connection.SendActivateProfile(profile, animation: 3001, compositeEffect: 4005); // emo_outfit_all / PFX_Job_Swirl
 
-        using var packetWriter = new PacketWriter();
+        // Resending the full (truthful) self data repairs the client's cached menu entry for
+        // whichever profile SendActivateProfile just spoofed the id of, without undoing the
+        // color that was just set.
+        connection.SendSelfToClient();
 
-        const int refereeProfileId = 58;
-        bool isReferee = connection.Player.IsMod || connection.Player.IsAdmin;
-        int realProfileId = profile.Id;
-
-        if (isReferee)
-            profile.Id = refereeProfileId;
-
-        try
-        {
-            profile.Serialize(packetWriter);
-        }
-        finally
-        {
-            profile.Id = realProfileId;
-        }
-
-        clientUpdatePacketActivateProfile.Payload = packetWriter.Buffer;
-
-        clientUpdatePacketActivateProfile.Attachments = connection.Player.GetAttachments();
-
-        clientUpdatePacketActivateProfile.Animation = 3001; // emo_outfit_all
-        clientUpdatePacketActivateProfile.CompositeEffect = 4005; // PFX_Job_Swirl
-
-        connection.SendTunneled(clientUpdatePacketActivateProfile);
-
-        // EXPERIMENT: testing whether resending the full (unspoofed) self data repairs the
-        // client's cached Referee menu entry after the spoofed activation above. Remove if
-        // this doesn't help or causes other visible side effects (position/camera reset etc).
-        if (isReferee)
-            connection.SendSelfToClient();
+        var attachments = connection.Player.GetAttachments();
 
         var playerUpdatePacketEquippedItemsChange = new PlayerUpdatePacketEquippedItemsChange();
 
         playerUpdatePacketEquippedItemsChange.Guid = connection.Player.Guid;
 
-        playerUpdatePacketEquippedItemsChange.Attachments = clientUpdatePacketActivateProfile.Attachments;
+        playerUpdatePacketEquippedItemsChange.Attachments = attachments;
 
         connection.Player.SendTunneledToVisible(playerUpdatePacketEquippedItemsChange);
 
