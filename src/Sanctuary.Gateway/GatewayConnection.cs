@@ -545,47 +545,6 @@ public class GatewayConnection : UdpConnection
         SendTunneled(packetSendSelfToClient);
     }
 
-    // The client only colors a name pink while the active profile it was most recently told
-    // about equals this id, recomputed whenever a profile is activated - it is not a persistent
-    // per-player flag. Staff have this id reported for whichever profile is being activated
-    // (login or a real switch) so the color survives, while `profile` itself, Player.ActiveProfileId,
-    // and everything else server-side keep the real id. Should be followed by SendSelfToClient()
-    // so the client's cached menu entry for the real profile gets corrected back to the truth
-    // without undoing the color (validated: a truthful SendSelfToClient after this does not
-    // reset the color bit).
-    public void SendActivateProfile(ClientPcProfile profile, int animation, int compositeEffect)
-    {
-        const int refereeProfileId = 58;
-
-        var clientUpdatePacketActivateProfile = new ClientUpdatePacketActivateProfile();
-
-        using var packetWriter = new PacketWriter();
-
-        bool isReferee = Player.IsMod || Player.IsAdmin;
-        int realProfileId = profile.Id;
-
-        if (isReferee)
-            profile.Id = refereeProfileId;
-
-        try
-        {
-            profile.Serialize(packetWriter);
-        }
-        finally
-        {
-            profile.Id = realProfileId;
-        }
-
-        clientUpdatePacketActivateProfile.Payload = packetWriter.Buffer;
-
-        clientUpdatePacketActivateProfile.Attachments = Player.GetAttachments();
-
-        clientUpdatePacketActivateProfile.Animation = animation;
-        clientUpdatePacketActivateProfile.CompositeEffect = compositeEffect;
-
-        SendTunneled(clientUpdatePacketActivateProfile);
-    }
-
     public void SendFriendOffline()
     {
         var friendOfflinePacket = new FriendOfflinePacket();

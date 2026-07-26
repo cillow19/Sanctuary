@@ -286,27 +286,7 @@ public static class PacketLoginHandler
         // AnnoucementDataSendPacket
         // AchievementObjectiveActivatedPacket - Part 2?
 
-        // Must be sent before SendActivateProfile below - the client's self character object
-        // doesn't exist until it processes this, and ActivateProfile operates on that object.
         connection.SendSelfToClient();
-
-        if (character.User.IsMod || character.User.IsAdmin)
-        {
-            var activeProfile = connection.Player.Profiles.FirstOrDefault(x => x.Id == connection.Player.ActiveProfileId);
-
-            if (activeProfile is not null)
-            {
-                // Silently "reactivate" the character's own current profile so the client sees
-                // an activation event at login (same mechanism a real switch uses) and sets the
-                // referee color bit, without any visible animation/effect playing.
-                connection.SendActivateProfile(activeProfile, animation: 0, compositeEffect: 0);
-
-                // Resend the truthful self data to repair the client's cached menu entry for
-                // whichever profile the call above just spoofed the id of, without undoing the
-                // color that was just set (same validated pattern used on a real job switch).
-                connection.SendSelfToClient();
-            }
-        }
 
         return true;
     }

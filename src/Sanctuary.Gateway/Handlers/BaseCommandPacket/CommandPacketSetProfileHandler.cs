@@ -42,20 +42,26 @@ public static class CommandPacketSetProfileHandler
 
         connection.Player.ActiveProfileId = packet.Id;
 
-        connection.SendActivateProfile(profile, animation: 3001, compositeEffect: 4005); // emo_outfit_all / PFX_Job_Swirl
+        var clientUpdatePacketActivateProfile = new ClientUpdatePacketActivateProfile();
 
-        // Resending the full (truthful) self data repairs the client's cached menu entry for
-        // whichever profile SendActivateProfile just spoofed the id of, without undoing the
-        // color that was just set.
-        connection.SendSelfToClient();
+        using var packetWriter = new PacketWriter();
 
-        var attachments = connection.Player.GetAttachments();
+        profile.Serialize(packetWriter);
+
+        clientUpdatePacketActivateProfile.Payload = packetWriter.Buffer;
+
+        clientUpdatePacketActivateProfile.Attachments = connection.Player.GetAttachments();
+
+        clientUpdatePacketActivateProfile.Animation = 3001; // emo_outfit_all
+        clientUpdatePacketActivateProfile.CompositeEffect = 4005; // PFX_Job_Swirl
+
+        connection.SendTunneled(clientUpdatePacketActivateProfile);
 
         var playerUpdatePacketEquippedItemsChange = new PlayerUpdatePacketEquippedItemsChange();
 
         playerUpdatePacketEquippedItemsChange.Guid = connection.Player.Guid;
 
-        playerUpdatePacketEquippedItemsChange.Attachments = attachments;
+        playerUpdatePacketEquippedItemsChange.Attachments = clientUpdatePacketActivateProfile.Attachments;
 
         connection.Player.SendTunneledToVisible(playerUpdatePacketEquippedItemsChange);
 
