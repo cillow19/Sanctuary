@@ -68,7 +68,15 @@ public static class CommandPacketSetProfileHandler
         bool isReferee = connection.Player.IsMod || connection.Player.IsAdmin;
 
         if (isReferee)
+        {
             connection.Player.SendTunneledToVisible(connection.Player.GetAddPcPacket());
+
+            connection.SendTunneled(new PacketMembershipSubscriptionInfo
+            {
+                IsMember = connection.Player.MembershipStatus != 0,
+                IsReferee = isReferee
+            });
+        }
 
         var friendStatusPacket = new FriendStatusPacket
         {
