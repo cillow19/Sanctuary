@@ -516,7 +516,7 @@ public sealed class Player : ClientPcData, IEntity
 
             // playerUpdatePacketAddPc.TemporaryAppearance = 277;
 
-            ActiveProfileId = ActiveProfileId,
+            ActiveProfileId = isReferee ? 58 : ActiveProfileId,
 
             MountQueuePosition = -1,
             MountSeat = -1,

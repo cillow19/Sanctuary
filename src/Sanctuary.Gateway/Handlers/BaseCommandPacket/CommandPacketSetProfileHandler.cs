@@ -40,13 +40,27 @@ public static class CommandPacketSetProfileHandler
         if (profile is null)
             return true;
 
+        bool isReferee = connection.Player.IsMod || connection.Player.IsAdmin;
+
         connection.Player.ActiveProfileId = packet.Id;
 
         var clientUpdatePacketActivateProfile = new ClientUpdatePacketActivateProfile();
 
         using var packetWriter = new PacketWriter();
 
-        profile.Serialize(packetWriter);
+        int realProfileId = profile.Id;
+
+        if (isReferee)
+            profile.Id = 58;
+
+        try
+        {
+            profile.Serialize(packetWriter);
+        }
+        finally
+        {
+            profile.Id = realProfileId;
+        }
 
         clientUpdatePacketActivateProfile.Payload = packetWriter.Buffer;
 
@@ -65,18 +79,8 @@ public static class CommandPacketSetProfileHandler
 
         connection.Player.SendTunneledToVisible(playerUpdatePacketEquippedItemsChange);
 
-        bool isReferee = connection.Player.IsMod || connection.Player.IsAdmin;
-
         if (isReferee)
-        {
             connection.Player.SendTunneledToVisible(connection.Player.GetAddPcPacket());
-
-            connection.SendTunneled(new PacketMembershipSubscriptionInfo
-            {
-                IsMember = connection.Player.MembershipStatus != 0,
-                IsReferee = isReferee
-            });
-        }
 
         var friendStatusPacket = new FriendStatusPacket
         {
