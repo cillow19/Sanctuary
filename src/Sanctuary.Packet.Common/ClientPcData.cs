@@ -55,6 +55,8 @@ public class ClientPcData
     // Only shows when membership isn't active.
     public bool ShowMemberNagScreen;
 
+    public bool IsReferee;
+
     // Country Ids
     //   1 - AD
     //   2 - AE
@@ -485,6 +487,8 @@ public class ClientPcData
 
         writer.Write(MembershipStatus);
         writer.Write(ShowMemberNagScreen);
+
+        writer.Write(IsReferee);
 
         writer.Write(ChatCountryId);
         writer.Write(ChatLanguageId);

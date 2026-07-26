@@ -311,7 +311,10 @@ public static class ChatCommandRegistry
             .ExecuteUpdate(user => user.SetProperty(u => u.IsMod, isMod));
 
         if (_zoneManager.TryGetPlayer(targetName, out var targetPlayer))
+        {
             targetPlayer.IsMod = isMod;
+            targetPlayer.IsReferee = targetPlayer.IsMod || targetPlayer.IsAdmin;
+        }
 
         LogAction(connection, isMod ? "Promote" : "Demote", targetName);
 

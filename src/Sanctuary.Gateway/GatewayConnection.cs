@@ -238,6 +238,8 @@ public class GatewayConnection : UdpConnection
         Player.MembershipStatus = dbCharacter.MembershipStatus;
         Player.ShowMemberNagScreen = _options.ShowMemberNagScreen;
 
+        Player.IsReferee = dbCharacter.User.IsAdmin || dbCharacter.User.IsMod;
+
         foreach (var dbProfile in dbCharacter.Profiles)
         {
             if (!_resourceManager.Profiles.TryGetValue(dbProfile.Id, out var profileData))
