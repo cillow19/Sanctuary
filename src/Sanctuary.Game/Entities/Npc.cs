@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System;
 
 using Sanctuary.Game.Zones;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
+using Sanctuary.Game.Pathfinding;
 
 namespace Sanctuary.Game.Entities;
+
 
 public class Npc : IEntity
 {
@@ -15,6 +18,9 @@ public class Npc : IEntity
 
     public Vector4 Position { get; private set; }
     public Quaternion Rotation { get; private set; }
+
+    public Vector4 SpawnPosition { get; set; }
+    public Quaternion SpawnRotation { get; set; }
 
     public bool Visible { get; set; }
 
@@ -67,6 +73,14 @@ public class Npc : IEntity
 
     public bool Static { get; set; }
 
+
+    public float WaypointTolerance { get; set; } = 0f;
+    public float Speed { get; set; }
+
+    private readonly PathState _path = new();
+
+    private PathBuilder? _pathBuilder;
+
     public Npc(IZone zone)
     {
         Zone = zone;
@@ -108,10 +122,18 @@ public class Npc : IEntity
 
     public virtual void UpdateEveryTick()
     {
+        var currentPosition = new Vector3(Position.X, Position.Y, Position.Z);
+        var result = PathFollower.Advance(_path, currentPosition, Speed, WaypointTolerance, Zone.TickDeltaSeconds);
+
+        if (result.Moved)
+        {
+            UpdatePosition(new Vector4(result.NewPosition, 1f), result.NewRotation!.Value);
+        }
     }
 
     public virtual void UpdateEverySecond()
     {
+
     }
 
     public void UpdatePosition(Vector4 position, Quaternion rotation, bool updateZoneArea = true)
@@ -122,6 +144,20 @@ public class Npc : IEntity
         if (Visible)
         {
             UpdateZoneTile();
+        }
+
+        var packet = new PlayerUpdatePacketUpdatePosition
+        {
+            Guid = Guid,
+            Position = position,
+            Rotation = rotation,
+            State = 1,
+            Unknown = 0
+        };
+
+        foreach (var visiblePlayer in VisiblePlayers)
+        {
+            visiblePlayer.Value.SendTunneled(packet);
         }
     }
 
@@ -189,7 +225,7 @@ public class Npc : IEntity
 
             TerrainObjectId = TerrainObjectId,
 
-            Speed = default,
+            Speed = Speed,
 
             Unknown28 = default,
 
@@ -308,8 +344,42 @@ public class Npc : IEntity
         foreach (var visiblePlayer in VisiblePlayers)
             visiblePlayer.Value.OnRemoveVisibleNpcs([this]);
 
+        RemoveFromZone();
+    }
+
+    protected void DisposeGracefully(bool animate, int delay, int effectDelay, int compositeEffectId, int duration)
+    {
+        foreach (var visiblePlayer in VisiblePlayers)
+        {
+            visiblePlayer.Value.OnRemoveVisibleNpcGracefully(
+                this, animate, delay, effectDelay, compositeEffectId, duration);
+        }
+
+        RemoveFromZone();
+    }
+
+    private void RemoveFromZone()
+    {
         ZoneTile.Entities.Remove(Guid, out _);
 
         Zone.TryRemoveNpc(Guid);
+    }
+
+    public void MoveTo(Vector3 goalPosition, bool direct = false)
+    {
+        if (direct || Zone.Pathfinder is null)
+        {
+            var waypoints = new Queue<Vector3>();
+            waypoints.Enqueue(goalPosition);
+            _path.Set(waypoints);
+            return;
+        }
+
+        _pathBuilder ??= new PathBuilder(Zone.Pathfinder);
+
+        var currentPosition = new Vector3(Position.X, Position.Y, Position.Z);
+        var newWaypoints = _pathBuilder.TryRecompute(currentPosition, goalPosition);
+        if (newWaypoints is not null)
+            _path.Set(newWaypoints);
     }
 }
