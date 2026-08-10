@@ -70,15 +70,6 @@ public static class CommandPacketSetProfileHandler
         if (isReferee)
         {
             connection.Player.SendTunneledToVisible(connection.Player.GetAddPcPacket());
-
-            // Re-declare referee status through its own dedicated packet (rather than the
-            // per-profile ActivateProfile payload or a full self-resync) so the client's
-            // pink-name state doesn't depend on which job is currently active.
-            connection.SendTunneled(new PacketMembershipSubscriptionInfo
-            {
-                IsMember = connection.Player.MembershipStatus != 0,
-                IsReferee = true
-            });
         }
 
         var friendStatusPacket = new FriendStatusPacket
