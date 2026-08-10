@@ -95,46 +95,46 @@ public static class PacketLoginHandler
         }
     }
 
-    // private static void AddRefereeToTitle(DbCharacter character, DatabaseContext dbContext)
-    // {
-    //     const int refereeTitleId = 91;
-    //     if (!_resourceManager.PlayerTitles.ContainsKey(refereeTitleId))
-    //     {
-    //         _logger.LogWarning("Referee title with ID {refereeTitleId} does not exist in the resource manager.", refereeTitleId);
-    //         return;
-    //     }
+    private static void AddRefereeToTitle(DbCharacter character, DatabaseContext dbContext)
+    {
+        const int refereeTitleId = 91;
+        if (!_resourceManager.PlayerTitles.ContainsKey(refereeTitleId))
+        {
+            _logger.LogWarning("Referee title with ID {refereeTitleId} does not exist in the resource manager.", refereeTitleId);
+            return;
+        }
 
-    //     // Check if the character already has the referee title
-    //     if (character.Titles.Any(t => t.Id == refereeTitleId))
-    //     {
-    //         _logger.LogInformation("Character {characterId} already has the referee title.", character.Id);
-    //         return;
-    //     }
+        // Check if the character already has the referee title
+        if (character.Titles.Any(t => t.Id == refereeTitleId))
+        {
+            _logger.LogInformation("Character {characterId} already has the referee title.", character.Id);
+            return;
+        }
 
-    //     DbTitle refereeTitle = new DbTitle
-    //     {
-    //         CharacterId = character.Id,
-    //         Id = refereeTitleId
-    //     };
+        DbTitle refereeTitle = new DbTitle
+        {
+            CharacterId = character.Id,
+            Id = refereeTitleId
+        };
 
-    //     dbContext.Titles.Add(refereeTitle);
-    //     dbContext.SaveChanges();
-    //     character.Titles.Add(refereeTitle);
-    //     return;
-    // }
+        dbContext.Titles.Add(refereeTitle);
+        dbContext.SaveChanges();
+        character.Titles.Add(refereeTitle);
+        return;
+    }
 
-    // private static void RemoveRefereeFromTitle(DbCharacter character, DatabaseContext dbContext)
-    // {
-    //     const int refereeTitleId = 91;
-    //     dbContext.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId).ExecuteDelete();
-    //     dbContext.SaveChanges();
-    //     var titleToRemove = character.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId)
-    //     .FirstOrDefault(t => t.Id == refereeTitleId);
-    //     if (titleToRemove != null)
-    //     {
-    //         character.Titles.Remove(titleToRemove);
-    //     }
-    // }
+    private static void RemoveRefereeFromTitle(DbCharacter character, DatabaseContext dbContext)
+    {
+        const int refereeTitleId = 91;
+        dbContext.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId).ExecuteDelete();
+        dbContext.SaveChanges();
+        var titleToRemove = character.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId)
+        .FirstOrDefault(t => t.Id == refereeTitleId);
+        if (titleToRemove != null)
+        {
+            character.Titles.Remove(titleToRemove);
+        }
+    }
 
     public static bool HandlePacket(GatewayConnection connection, Span<byte> data)
     {
@@ -256,13 +256,13 @@ public static class PacketLoginHandler
         if (character.User.IsMod || character.User.IsAdmin)
         {
             AddRefereeToProfile(character, dbContext);
-            // AddRefereeToTitle(character, dbContext);
+            AddRefereeToTitle(character, dbContext);
         }
         else
         {
             // if user is no longer a mod, remove referee profile
             RemoveRefereeFromProfile(character, dbContext);
-            // RemoveRefereeFromTitle(character, dbContext);
+            RemoveRefereeFromTitle(character, dbContext);
         }
 #if !DEBUG
         var result = dbContext.Characters
@@ -308,6 +308,16 @@ public static class PacketLoginHandler
         // AchievementObjectiveActivatedPacket - Part 2?
 
         connection.SendSelfToClient();
+
+        // EXPERIMENTAL: the client never sends itself an AddPc about its own local player
+        // (self-view is normally driven entirely by ActiveProfileId), so referees only ever
+        // showed pink to themselves while literally on the Referee job. GetAddPcPacket() forces
+        // IsReferee/ActiveProfileId=58 independent of the real active job, the same override
+        // that already works correctly for other observers. Sending it to yourself, targeting
+        // your own Guid, tests whether the client's GUID-keyed entity lookup will apply that
+        // same persistent-pink logic to your own local entity too.
+        if (character.User.IsMod || character.User.IsAdmin)
+            connection.SendTunneled(connection.Player.GetAddPcPacket());
 
         _logger.LogInformation("{address} successfully logged in with character {name} ({id}).", connection.EndPoint.Address, character.FullName, character.Id);
 
