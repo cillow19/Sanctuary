@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using Sanctuary.Core.IO;
 using Sanctuary.Game;
 using Sanctuary.Packet;
-using Sanctuary.Packet.Common;
 using Sanctuary.Packet.Common.Attributes;
 
 namespace Sanctuary.Gateway.Handlers;
@@ -43,55 +42,20 @@ public static class CommandPacketSetProfileHandler
 
         bool isReferee = connection.Player.IsMod || connection.Player.IsAdmin;
 
-        connection.Player.ActiveProfileId = packet.Id;
+        if (isReferee)
+        {
+            connection.Player.ActiveProfileId = 58;
+        } 
+        else
+        {
+            connection.Player.ActiveProfileId = packet.Id;
+        }
 
         var clientUpdatePacketActivateProfile = new ClientUpdatePacketActivateProfile();
 
         using var packetWriter = new PacketWriter();
 
-        var profileToSerialize = profile;
-
-        // The client only renders the pink referee name for whichever profile Id it was told
-        // is active via this exact packet. Simply swapping profile.Id to 58 (the old approach)
-        // corrupted the cached Referee entry, because every OTHER field (NameId/Icon/etc.) still
-        // read as the real job's — the client showed the wrong job name/icon under the Referee
-        // slot, which looked like (and was) a duplicate/broken entry. Instead, build a proper
-        // merged profile: identity fields (Id/Name/Icon/ItemClasses/...) come from the real
-        // Referee profile so the client's Referee slot stays internally consistent, while
-        // Rank/Items/Abilities come from whichever job is actually equipped, so gear/abilities
-        // stay correct. This never touches the real (non-Referee) profile object at all.
-        if (isReferee && profile.Id != 58)
-        {
-            var refereeProfile = connection.Player.Profiles.FirstOrDefault(x => x.Id == 58);
-
-            if (refereeProfile is not null)
-            {
-                profileToSerialize = new ClientPcProfile
-                {
-                    Id = refereeProfile.Id,
-                    NameId = profile.NameId,
-                    DescriptionId = profile.DescriptionId,
-                    Type = profile.Type,
-                    Icon = profile.Icon,
-                    AbilityBgImageSet = profile.AbilityBgImageSet,
-                    BadgeImageSet = profile.BadgeImageSet,
-                    ButtonImageSet = profile.ButtonImageSet,
-                    MembersOnly = profile.MembersOnly,
-                    ItemClasses = profile.ItemClasses,
-
-                    IsCombat = profile.IsCombat,
-                    Rank = profile.Rank,
-                    RankPercent = profile.RankPercent,
-                    StarsAvailable = profile.StarsAvailable,
-                    StarsEarned = profile.StarsEarned,
-                    Items = profile.Items,
-                    Abilities = profile.Abilities,
-                    AbilityExperiences = profile.AbilityExperiences
-                };
-            }
-        }
-
-        profileToSerialize.Serialize(packetWriter);
+        profile.Serialize(packetWriter);
 
         clientUpdatePacketActivateProfile.Payload = packetWriter.Buffer;
 
@@ -109,11 +73,6 @@ public static class CommandPacketSetProfileHandler
         playerUpdatePacketEquippedItemsChange.Attachments = clientUpdatePacketActivateProfile.Attachments;
 
         connection.Player.SendTunneledToVisible(playerUpdatePacketEquippedItemsChange);
-
-        if (isReferee)
-        {
-            connection.Player.SendTunneledToVisible(connection.Player.GetAddPcPacket());
-        }
 
         var friendStatusPacket = new FriendStatusPacket
         {
