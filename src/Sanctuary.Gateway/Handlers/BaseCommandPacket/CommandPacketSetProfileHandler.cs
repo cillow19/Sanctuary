@@ -68,7 +68,11 @@ public static class CommandPacketSetProfileHandler
         connection.Player.SendTunneledToVisible(playerUpdatePacketEquippedItemsChange);
 
         if (isReferee)
+        {
             connection.Player.SendTunneledToVisible(connection.Player.GetAddPcPacket());
+
+            connection.SendSelfToClient();
+        }
 
         var friendStatusPacket = new FriendStatusPacket
         {
