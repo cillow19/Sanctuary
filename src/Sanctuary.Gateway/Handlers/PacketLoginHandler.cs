@@ -11,6 +11,7 @@ using Sanctuary.Core.Helpers;
 using Sanctuary.Database;
 using Sanctuary.Database.Entities;
 using Sanctuary.Game;
+using Sanctuary.Game.Helpers;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common.Attributes;
 
@@ -43,7 +44,7 @@ public static class PacketLoginHandler
     private static void AddRefereeToProfile(DbCharacter character, DatabaseContext dbContext)
     {
         const int refereeId = 58;
-        if (!_resourceManager.Profiles.ContainsKey(refereeId))
+        if (!_resourceManager.Profiles.TryGetValue(refereeId, out var refereeProfileData))
         {
             _logger.LogWarning("Referee profile with ID {refereeId} does not exist in the resource manager.", refereeId);
             return;
@@ -62,6 +63,18 @@ public static class PacketLoginHandler
             Id = refereeId,
             Level = 20
         };
+
+        var existingItemIds = character.Items.Select(x => x.Id).ToHashSet();
+
+        ProfileHelper.GrantDefaultItems(character, refereeProfile, refereeProfileData, _resourceManager);
+
+        // character is loaded AsNoTracking, so any newly created items need to be
+        // explicitly attached to the context alongside the new profile.
+        foreach (var item in character.Items)
+        {
+            if (!existingItemIds.Contains(item.Id))
+                dbContext.Items.Add(item);
+        }
 
         dbContext.Profiles.Add(refereeProfile);
         dbContext.SaveChanges();

@@ -11,6 +11,7 @@ using Sanctuary.Core.Helpers;
 using Sanctuary.Database;
 using Sanctuary.Database.Entities;
 using Sanctuary.Game;
+using Sanctuary.Game.Helpers;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
 using Sanctuary.Packet.Common.Attributes;
@@ -372,7 +373,6 @@ public static class CharacterCreateRequestHandler
                 Level = 20
             };
 
-            // TODO
             if (profileData.DefaultItems.Count == 0)
             {
                 dbProfile.Items.Add(chestItem);
@@ -381,31 +381,7 @@ public static class CharacterCreateRequestHandler
             }
             else
             {
-                foreach (var defaultItemId in profileData.DefaultItems)
-                {
-                    if (!_resourceManager.ClientItemDefinitions.TryGetValue(defaultItemId, out var defaultClientItemDefinition))
-                        continue;
-
-                    if (defaultClientItemDefinition.GenderUsage != 0 && defaultClientItemDefinition.GenderUsage != dbCharacter.Gender)
-                        continue;
-
-                    var dbItem = dbCharacter.Items.SingleOrDefault(x => x.Definition == defaultItemId);
-
-                    if (dbItem is null)
-                    {
-                        dbItem = new DbItem
-                        {
-                            Id = dbCharacter.Items.Count + 1,
-                            Definition = defaultClientItemDefinition.Id,
-                            Tint = defaultClientItemDefinition.Icon.TintId,
-                            Count = 1
-                        };
-
-                        dbCharacter.Items.Add(dbItem);
-                    }
-
-                    dbProfile.Items.Add(dbItem);
-                }
+                ProfileHelper.GrantDefaultItems(dbCharacter, dbProfile, profileData, _resourceManager);
             }
 
             dbCharacter.Profiles.Add(dbProfile);

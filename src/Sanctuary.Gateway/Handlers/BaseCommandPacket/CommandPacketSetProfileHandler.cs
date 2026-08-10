@@ -48,19 +48,7 @@ public static class CommandPacketSetProfileHandler
 
         using var packetWriter = new PacketWriter();
 
-        int realProfileId = profile.Id;
-
-        if (isReferee)
-            profile.Id = 58;
-
-        try
-        {
-            profile.Serialize(packetWriter);
-        }
-        finally
-        {
-            profile.Id = realProfileId;
-        }
+        profile.Serialize(packetWriter);
 
         clientUpdatePacketActivateProfile.Payload = packetWriter.Buffer;
 
