@@ -68,29 +68,23 @@ public static class PacketLoginHandler
 
         ProfileHelper.GrantDefaultItems(character, refereeProfile, refereeProfileData, _resourceManager);
 
-        // character is loaded AsNoTracking, so any newly created items need to be
-        // explicitly attached to the context alongside the new profile.
+        // character was loaded via AsNoTrackingWithIdentityResolution(), which still fixes up
+        // back-references (e.g. DbItem.Character) within the query graph. If GrantDefaultItems
+        // reused an item the character already owns, that shared reference is reachable from
+        // refereeProfile, and dbContext.Add()'s automatic cascade would then walk into the
+        // (already-existing) character/user/items/profiles/titles and try to re-insert every
+        // one of them, crashing on a duplicate-key violation. Attach the whole existing graph
+        // as Unchanged first (a no-op for rows that already exist), then explicitly mark only
+        // the genuinely new entities as Added.
+        dbContext.Attach(character);
+
         foreach (var item in character.Items)
         {
             if (!existingItemIds.Contains(item.Id))
-                dbContext.Items.Add(item);
+                dbContext.Entry(item).State = EntityState.Added;
         }
 
-        dbContext.Profiles.Add(refereeProfile);
-
-        // DIAGNOSTIC: dump everything EF actually has tracked immediately before the save that
-        // keeps failing on a Users.Id collision, so we can see exactly what's being treated as
-        // a new insert instead of continuing to guess at the object graph.
-        foreach (var entry in dbContext.ChangeTracker.Entries())
-        {
-            var idProperty = entry.Properties.FirstOrDefault(p => p.Metadata.Name == "Id");
-
-            _logger.LogWarning(
-                "[AddRefereeToProfile DIAGNOSTIC] Type={type} Id={id} State={state}",
-                entry.Entity.GetType().Name,
-                idProperty?.CurrentValue,
-                entry.State);
-        }
+        dbContext.Entry(refereeProfile).State = EntityState.Added;
 
         dbContext.SaveChanges();
         character.Profiles.Add(refereeProfile);
@@ -132,7 +126,12 @@ public static class PacketLoginHandler
             Id = refereeTitleId
         };
 
-        dbContext.Titles.Add(refereeTitle);
+        // Same reasoning as AddRefereeToProfile: attach the existing graph as Unchanged first
+        // (safe/idempotent if character is already attached from AddRefereeToProfile above) so
+        // dbContext.Add()'s cascade can't rediscover and try to re-insert the character/user.
+        dbContext.Attach(character);
+        dbContext.Entry(refereeTitle).State = EntityState.Added;
+
         dbContext.SaveChanges();
         character.Titles.Add(refereeTitle);
         return;
