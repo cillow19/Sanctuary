@@ -95,52 +95,6 @@ public static class PacketLoginHandler
         }
     }
 
-    private static void AddRefereeToTitle(DbCharacter character, DatabaseContext dbContext)
-    {
-        const int refereeTitleId = 91;
-        if (!_resourceManager.PlayerTitles.ContainsKey(refereeTitleId))
-        {
-            _logger.LogWarning("Referee title with ID {refereeTitleId} does not exist in the resource manager.", refereeTitleId);
-            return;
-        }
-
-        // Check if the character already has the referee title
-        if (character.Titles.Any(t => t.Id == refereeTitleId))
-        {
-            _logger.LogInformation("Character {characterId} already has the referee title.", character.Id);
-            return;
-        }
-
-        DbTitle refereeTitle = new DbTitle
-        {
-            CharacterId = character.Id,
-            Id = refereeTitleId
-        };
-
-        // Same reasoning as AddRefereeToProfile: attach the existing graph as Unchanged first
-        // (safe/idempotent if character is already attached from AddRefereeToProfile above) so
-        // dbContext.Add()'s cascade can't rediscover and try to re-insert the character/user.
-        dbContext.Attach(character);
-        dbContext.Entry(refereeTitle).State = EntityState.Added;
-
-        dbContext.SaveChanges();
-        character.Titles.Add(refereeTitle);
-        return;
-    }
-
-    private static void RemoveRefereeFromTitle(DbCharacter character, DatabaseContext dbContext)
-    {
-        const int refereeTitleId = 91;
-        dbContext.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId).ExecuteDelete();
-        dbContext.SaveChanges();
-        var titleToRemove = character.Titles.Where(t => t.CharacterId == character.Id && t.Id == refereeTitleId)
-        .FirstOrDefault(t => t.Id == refereeTitleId);
-        if (titleToRemove != null)
-        {
-            character.Titles.Remove(titleToRemove);
-        }
-    }
-
     public static bool HandlePacket(GatewayConnection connection, Span<byte> data)
     {
         if (!PacketLogin.TryDeserialize(data, out var packet))
@@ -261,13 +215,11 @@ public static class PacketLoginHandler
         if (character.User.IsMod || character.User.IsAdmin)
         {
             AddRefereeToProfile(character, dbContext);
-            AddRefereeToTitle(character, dbContext);
         }
         else
         {
             // if user is no longer a mod, remove referee profile
             RemoveRefereeFromProfile(character, dbContext);
-            RemoveRefereeFromTitle(character, dbContext);
         }
 #if !DEBUG
         var result = dbContext.Characters
