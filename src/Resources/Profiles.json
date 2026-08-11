@@ -1773,11 +1773,11 @@
   {
     "Comment": "Referee",
     "Id": 58,
-    "NameId": 900100,
+    "NameId": 2836,
     "DescriptionId": 9998,
     "Type": 9,
-    "Icon": 20750,
-    "BadgeImageSet": 4850,
+    "Icon": 258,
+    "BadgeImageSet": 19,
     "ButtonImageSet": 21,
     "AbilityBgImageSet": 4,
     "Hint": 416472,
@@ -1869,9 +1869,21 @@
       "999": {
         "Class": 999,
         "Unknown": 0
+      },
+      "26": {
+        "Class": 26,
+        "Unknown": 0
+      },
+      "1": {
+        "Class": 1,
+        "Unknown": 0
       }
     },
-    "DefaultItems": []
+    "DefaultItems": [
+      13682,
+      421,
+      429
+    ]
   },
   {
     "Comment": "Merchant",

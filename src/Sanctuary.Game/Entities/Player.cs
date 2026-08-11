@@ -537,7 +537,6 @@ public sealed class Player : ClientPcData, IEntity
 
     public PlayerUpdatePacketAddPc GetAddPcPacket()
     {
-        int refereeProfileId = 138;
         bool isReferee = IsMod || IsAdmin;
         var packet = new PlayerUpdatePacketAddPc
         {
@@ -575,7 +574,7 @@ public sealed class Player : ClientPcData, IEntity
 
             // playerUpdatePacketAddPc.TemporaryAppearance = 277;
 
-            ActiveProfileId = ActiveProfileId,
+            ActiveProfileId = isReferee ? 58 : ActiveProfileId,
 
             MountQueuePosition = -1,
             MountSeat = -1,
