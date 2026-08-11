@@ -77,6 +77,21 @@ public static class PacketLoginHandler
         }
 
         dbContext.Profiles.Add(refereeProfile);
+
+        // DIAGNOSTIC: dump everything EF actually has tracked immediately before the save that
+        // keeps failing on a Users.Id collision, so we can see exactly what's being treated as
+        // a new insert instead of continuing to guess at the object graph.
+        foreach (var entry in dbContext.ChangeTracker.Entries())
+        {
+            var idProperty = entry.Properties.FirstOrDefault(p => p.Metadata.Name == "Id");
+
+            _logger.LogWarning(
+                "[AddRefereeToProfile DIAGNOSTIC] Type={type} Id={id} State={state}",
+                entry.Entity.GetType().Name,
+                idProperty?.CurrentValue,
+                entry.State);
+        }
+
         dbContext.SaveChanges();
         character.Profiles.Add(refereeProfile);
         return;
