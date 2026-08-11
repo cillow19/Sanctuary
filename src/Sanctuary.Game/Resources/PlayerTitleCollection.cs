@@ -43,7 +43,7 @@ public class PlayerTitleCollection : ObservableConcurrentDictionary<int, PlayerT
                 _logger.LogError("No entries found in file \"{file}\".", filePath);
                 return false;
             }
-
+            Clear();
             foreach (var entry in list)
             {
                 if (!TryAdd(entry.Id, entry))
