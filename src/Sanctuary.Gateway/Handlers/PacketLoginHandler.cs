@@ -309,16 +309,6 @@ public static class PacketLoginHandler
 
         connection.SendSelfToClient();
 
-        // EXPERIMENTAL: the client never sends itself an AddPc about its own local player
-        // (self-view is normally driven entirely by ActiveProfileId), so referees only ever
-        // showed pink to themselves while literally on the Referee job. GetAddPcPacket() forces
-        // IsReferee/ActiveProfileId=58 independent of the real active job, the same override
-        // that already works correctly for other observers. Sending it to yourself, targeting
-        // your own Guid, tests whether the client's GUID-keyed entity lookup will apply that
-        // same persistent-pink logic to your own local entity too.
-        if (character.User.IsMod || character.User.IsAdmin)
-            connection.SendTunneled(connection.Player.GetAddPcPacket());
-
         _logger.LogInformation("{address} successfully logged in with character {name} ({id}).", connection.EndPoint.Address, character.FullName, character.Id);
 
         return true;

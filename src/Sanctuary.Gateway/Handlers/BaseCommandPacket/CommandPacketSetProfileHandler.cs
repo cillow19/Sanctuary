@@ -68,14 +68,7 @@ public static class CommandPacketSetProfileHandler
         connection.Player.SendTunneledToVisible(playerUpdatePacketEquippedItemsChange);
 
         if (isReferee)
-        {
             connection.Player.SendTunneledToVisible(connection.Player.GetAddPcPacket());
-
-            // EXPERIMENTAL: also send yourself an AddPc about your own Guid, in case the
-            // client's GUID-keyed entity/color update path (which already works correctly for
-            // other observers via this same packet) will apply to your own local entity too.
-            connection.SendTunneled(connection.Player.GetAddPcPacket());
-        }
 
         var friendStatusPacket = new FriendStatusPacket
         {
