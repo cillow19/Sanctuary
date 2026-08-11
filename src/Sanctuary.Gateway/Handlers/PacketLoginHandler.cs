@@ -67,15 +67,6 @@ public static class PacketLoginHandler
         var existingItemIds = character.Items.Select(x => x.Id).ToHashSet();
 
         ProfileHelper.GrantDefaultItems(character, refereeProfile, refereeProfileData, _resourceManager);
-
-        // character was loaded via AsNoTrackingWithIdentityResolution(), which still fixes up
-        // back-references (e.g. DbItem.Character) within the query graph. If GrantDefaultItems
-        // reused an item the character already owns, that shared reference is reachable from
-        // refereeProfile, and dbContext.Add()'s automatic cascade would then walk into the
-        // (already-existing) character/user/items/profiles/titles and try to re-insert every
-        // one of them, crashing on a duplicate-key violation. Attach the whole existing graph
-        // as Unchanged first (a no-op for rows that already exist), then explicitly mark only
-        // the genuinely new entities as Added.
         dbContext.Attach(character);
 
         foreach (var item in character.Items)
