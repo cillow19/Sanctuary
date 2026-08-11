@@ -29,6 +29,7 @@ public static class ProfileHelper
                 dbItem = new DbItem
                 {
                     Id = character.Items.Count > 0 ? character.Items.Max(x => x.Id) + 1 : 1,
+                    CharacterId = character.Id,
                     Definition = defaultClientItemDefinition.Id,
                     Tint = defaultClientItemDefinition.Icon.TintId,
                     Count = 1
