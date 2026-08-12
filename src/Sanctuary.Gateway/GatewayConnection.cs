@@ -612,21 +612,22 @@ public class GatewayConnection : UdpConnection
         Player.Collections = _resourceManager.Collections.CreateClientCollections(Player.Guid, ownedItemDefinitionIds);
 
         var packetSendSelfToClient = new PacketSendSelfToClient();
+        packetSendSelfToClient.Payload = Player.Serialize();
 
-        bool isReferee = Player.IsMod || Player.IsAdmin;
-        int realActiveProfileId = Player.ActiveProfileId;
+        // bool isReferee = Player.IsMod || Player.IsAdmin;
+        // int realActiveProfileId = Player.ActiveProfileId;
 
-        if (isReferee)
-            Player.ActiveProfileId = 58;
+        // if (isReferee)
+        //     Player.ActiveProfileId = 58;
 
-        try
-        {
-            packetSendSelfToClient.Payload = Player.Serialize();
-        }
-        finally
-        {
-            Player.ActiveProfileId = realActiveProfileId;
-        }
+        // try
+        // {
+        // }
+        // finally
+        // {
+        //     Player.ActiveProfileId = realActiveProfileId;
+        // }
+
 
         SendTunneled(packetSendSelfToClient);
     }
