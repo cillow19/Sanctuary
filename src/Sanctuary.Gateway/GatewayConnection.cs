@@ -614,21 +614,6 @@ public class GatewayConnection : UdpConnection
         var packetSendSelfToClient = new PacketSendSelfToClient();
         packetSendSelfToClient.Payload = Player.Serialize();
 
-        // bool isReferee = Player.IsMod || Player.IsAdmin;
-        // int realActiveProfileId = Player.ActiveProfileId;
-
-        // if (isReferee)
-        //     Player.ActiveProfileId = 58;
-
-        // try
-        // {
-        // }
-        // finally
-        // {
-        //     Player.ActiveProfileId = realActiveProfileId;
-        // }
-
-
         SendTunneled(packetSendSelfToClient);
     }
 
