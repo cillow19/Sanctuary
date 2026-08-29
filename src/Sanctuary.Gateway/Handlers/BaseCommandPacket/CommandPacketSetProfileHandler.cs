@@ -40,7 +40,7 @@ public static class CommandPacketSetProfileHandler
         if (profile is null)
             return true;
 
-        // bool isReferee = connection.Player.IsMod || connection.Player.IsAdmin;
+        bool isReferee = connection.Player.IsMod || connection.Player.IsAdmin;
 
         connection.Player.ActiveProfileId = packet.Id;
 
@@ -67,8 +67,6 @@ public static class CommandPacketSetProfileHandler
 
         connection.Player.SendTunneledToVisible(playerUpdatePacketEquippedItemsChange);
 
-        // if (isReferee)
-        //     connection.Player.SendTunneledToVisible(connection.Player.GetAddPcPacket());
 
         var friendStatusPacket = new FriendStatusPacket
         {

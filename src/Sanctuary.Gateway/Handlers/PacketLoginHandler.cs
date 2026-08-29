@@ -211,15 +211,15 @@ public static class PacketLoginHandler
             }
         }
 
-        
-        if (character.User.IsMod || character.User.IsAdmin)
+        bool isReferee = character.User.IsMod || character.User.IsAdmin;
+        if (isReferee)
         {
-            AddRefereeToProfile(character, dbContext);
+            ProfileHelper.AddSpecialProfile(character, dbContext, _resourceManager, _logger, SpecialProfileIds.Referee);
         }
         else
         {
             // if user is no longer a mod, remove referee profile
-            RemoveRefereeFromProfile(character, dbContext);
+            ProfileHelper.RemoveSpecialProfile(character, dbContext, SpecialProfileIds.Referee);
         }
 #if !DEBUG
         var result = dbContext.Characters
