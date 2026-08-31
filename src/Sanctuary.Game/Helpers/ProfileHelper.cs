@@ -63,7 +63,7 @@ public static class ProfileHelper
         if (character.Profiles.Any(p => p.Id == id))
         {
             logger.LogDebug("Character {characterId} already has profile {profileId}.", character.Id, id);
-            return true;
+            return false;
         }
 
         DbProfile newProfile = new DbProfile
@@ -99,7 +99,6 @@ public static class ProfileHelper
             logger.LogError(ex, "Failed to save profile {profileId} for character {characterId}.", id, character.Id);
             return false;
         }
-
         character.Profiles.Add(newProfile);
         return true;
     }
