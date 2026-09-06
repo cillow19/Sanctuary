@@ -97,7 +97,7 @@ public class ResourceManager : IResourceManager
 
     public RewardTableDefinitionCollection RewardTables { get; }
 
-    public AbilityDefinitionCollection CombatAbilities { get; }
+    public CombatAbilityDefinitionCollection CombatAbilities { get; }
     public JobKitDefinitionCollection CombatJobs { get; }
 
     public ResourceManager(ILogger<ResourceManager> logger)

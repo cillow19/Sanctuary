@@ -42,7 +42,7 @@ public interface IResourceManager
 
     RewardTableDefinitionCollection RewardTables { get; }
 
-    AbilityDefinitionCollection CombatAbilities { get; }
+    CombatAbilityDefinitionCollection CombatAbilities { get; }
     JobKitDefinitionCollection CombatJobs { get; }
 
     bool Load();
