@@ -40,5 +40,10 @@ public interface IResourceManager
     NameFilterCollection NameFilter { get; }
     MapGraphCollection Maps { get; }
 
+    RewardTableDefinitionCollection RewardTables { get; }
+
+    AbilityDefinitionCollection CombatAbilities { get; }
+    JobKitDefinitionCollection CombatJobs { get; }
+
     bool Load();
 }

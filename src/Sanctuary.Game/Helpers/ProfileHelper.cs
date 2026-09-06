@@ -12,7 +12,7 @@ namespace Sanctuary.Game.Helpers;
 public enum SpecialProfileIds
 {
     Referee = 58,
-    // Enforcer = ??
+    Enforcer = 20
 }
 
 public static class ProfileHelper
@@ -28,7 +28,7 @@ public static class ProfileHelper
             if (defaultClientItemDefinition.GenderUsage != 0 && defaultClientItemDefinition.GenderUsage != character.Gender)
                 continue;
 
-            var dbItem = character.Items.SingleOrDefault(x => x.Definition == defaultItemId);
+            var dbItem = character.Items.FirstOrDefault(x => x.Definition == defaultItemId);
 
             if (dbItem is null)
             {
@@ -48,7 +48,7 @@ public static class ProfileHelper
         }
     }
 
-    public static void AddSpecialProfile(DbCharacter character, DatabaseContext dbContext,
+    public static bool AddSpecialProfile(DbCharacter character, DatabaseContext dbContext,
         IResourceManager resourceManager, ILogger logger, SpecialProfileIds profileId)
     {
         int id = (int)profileId;
@@ -56,14 +56,14 @@ public static class ProfileHelper
         if (!resourceManager.Profiles.TryGetValue(id, out var profileData))
         {
             logger.LogWarning("Profile with ID {profileId} does not exist in the resource manager.", id);
-            return;
+            return false;
         }
 
         // Check if the character already has the profile
         if (character.Profiles.Any(p => p.Id == id))
         {
-            logger.LogInformation("Character {characterId} already has profile {profileId}.", character.Id, id);
-            return;
+            logger.LogDebug("Character {characterId} already has profile {profileId}.", character.Id, id);
+            return false;
         }
 
         DbProfile newProfile = new DbProfile
@@ -86,23 +86,50 @@ public static class ProfileHelper
 
         dbContext.Entry(newProfile).State = EntityState.Added;
 
-        dbContext.SaveChanges();
+        try
+        {
+            if (dbContext.SaveChanges() <= 0)
+            {
+                logger.LogWarning("Failed to save profile {profileId} for character {characterId}.", id, character.Id);
+                return false;
+            }
+        }
+        catch (DbUpdateException ex)
+        {
+            logger.LogError(ex, "Failed to save profile {profileId} for character {characterId}.", id, character.Id);
+            return false;
+        }
         character.Profiles.Add(newProfile);
+        return true;
     }
 
-    public static void RemoveSpecialProfile(DbCharacter character, DatabaseContext dbContext, SpecialProfileIds profileId)
+    public static bool RemoveSpecialProfile(DbCharacter character, DatabaseContext dbContext, ILogger logger, SpecialProfileIds profileId)
     {
         int id = (int)profileId;
 
-        dbContext.Profiles.Where(p => p.CharacterId == character.Id && p.Id == id).ExecuteDelete();
-        dbContext.SaveChanges();
+        if (!character.Profiles.Any(p => p.Id == id))
+            return true;
+
+        try
+        {
+            if (dbContext.Profiles.Where(p => p.CharacterId == character.Id && p.Id == id).ExecuteDelete() <= 0)
+            {
+                logger.LogWarning("Failed to remove profile {profileId} for character {characterId}.", id, character.Id);
+                return false;
+            }
+        }
+        catch (DbUpdateException ex)
+        {
+            logger.LogError(ex, "Failed to remove profile {profileId} for character {characterId}.", id, character.Id);
+            return false;
+        }
 
         var profileToRemove = character.Profiles.FirstOrDefault(p => p.Id == id);
         if (profileToRemove != null)
         {
             character.Profiles.Remove(profileToRemove);
         }
+
+        return true;
     }
-    // void AddTitle();
-    // void RemoveTitle();
 }
