@@ -8,9 +8,10 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI: ".?AUSoccerPacketImpulseBall@@"
 // A direct kick/pass impulse applied to the ball (as opposed to the arced shot handled by
 // SoccerPacketHighArcBall). Covers MG_Soccer_Kick_Light/Heavy and MG_Soccer_SuperKick.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 13).
 public class SoccerPacketImpulseBall : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketImpulseBall>
 {
-    public new const short OpCode = 17;
+    public new const short OpCode = 13;
 
     public ulong KickerGuid;
 

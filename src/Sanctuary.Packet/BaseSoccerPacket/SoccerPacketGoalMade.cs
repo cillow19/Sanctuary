@@ -6,9 +6,10 @@ namespace Sanctuary.Packet;
 
 // Confirmed via RTTI: ".?AUSoccerPacketGoalMade@@"
 // Drives SoccerGoal / SoccerOpponentGoal / SoccerScores UI and the AMB_LP_Soccer_Crowd_Goal cue.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 2).
 public class SoccerPacketGoalMade : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketGoalMade>
 {
-    public new const short OpCode = 22;
+    public new const short OpCode = 2;
 
     public int ScoringTeamId;
     public ulong ScorerGuid;

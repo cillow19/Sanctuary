@@ -7,9 +7,10 @@ namespace Sanctuary.Packet;
 // End-of-match reward roll shown to the player, reusing the existing RewardBundleBase type
 // (same one MiniGameInfo uses for its reward fields). Server -> client only: RewardBundleBase
 // has no reader, only a writer.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 17).
 public class SoccerPacketStatRollInfo : BaseSoccerPacket, ISerializablePacket
 {
-    public new const short OpCode = 13;
+    public new const short OpCode = 17;
 
     public ulong Guid;
 

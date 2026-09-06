@@ -8,9 +8,10 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI: ".?AUSoccerPacketUpdatePlayerPos@@"
 // Mirrors PlayerUpdatePacketUpdatePosition, but scoped to the soccer opcode family so it can be
 // exchanged while the player's SoccerProcessor session is active on the field.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 1).
 public class SoccerPacketUpdatePlayerPos : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketUpdatePlayerPos>
 {
-    public new const short OpCode = 7;
+    public new const short OpCode = 1;
 
     public ulong Guid;
 

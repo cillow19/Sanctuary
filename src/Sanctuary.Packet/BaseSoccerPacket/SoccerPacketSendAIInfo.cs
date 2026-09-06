@@ -7,6 +7,7 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI: ".?AUSoccerPacketSendAIInfo@@"
 // Tells the client which registered slot is bot-controlled (used to fill out a match that
 // doesn't have enough human players) and how strong that bot should appear to play.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 24).
 public class SoccerPacketSendAIInfo : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketSendAIInfo>
 {
     public new const short OpCode = 24;

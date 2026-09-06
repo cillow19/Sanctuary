@@ -5,9 +5,10 @@ using Sanctuary.Core.IO;
 namespace Sanctuary.Packet;
 
 // Confirmed via RTTI: ".?AUSoccerPacketAcquireBall@@"
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 11).
 public class SoccerPacketAcquireBall : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketAcquireBall>
 {
-    public new const short OpCode = 15;
+    public new const short OpCode = 11;
 
     public ulong PlayerGuid;
 

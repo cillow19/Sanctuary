@@ -7,9 +7,10 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI: ".?AUSoccerPacketPlayerVariableStats@@"
 // Per-match running totals shown on the in-match scoreboard/HUD (SoccerScores/SoccerResults),
 // as opposed to the persistent CharacterStat pool carried by SoccerPacketUpdatePlayerStats.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 19).
 public class SoccerPacketPlayerVariableStats : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketPlayerVariableStats>
 {
-    public new const short OpCode = 11;
+    public new const short OpCode = 19;
 
     public ulong Guid;
 

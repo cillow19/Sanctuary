@@ -12,6 +12,12 @@ public class BaseSoccerPacket
     // before wiring this into the tunnel handlers for real traffic.
     public const short OpCode = 220;
 
+    // The 24 concrete SoccerPacket* SubOpCode values below (see each file) ARE confirmed for
+    // real: traced from the client's SoccerProcessor message-dispatch switch (FUN_00b80ac0),
+    // matched 1:1 against each concrete class's own constructor via its RTTI vtable - no
+    // guessing involved. That switch runs 1-25 with 20 skipped entirely, i.e. there is no
+    // 25th message type; the client's real protocol has exactly these 24.
+
     private short SubOpCode;
 
     public BaseSoccerPacket(short subOpCode)

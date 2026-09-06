@@ -7,9 +7,10 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI: ".?AUSoccerPacketSpecialAnimTime@@"
 // Synchronizes the duration of a one-off scripted animation across clients (goal celebration,
 // disappointed reaction, goalie throw, ...) so everyone's timeline lines up.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 22).
 public class SoccerPacketSpecialAnimTime : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketSpecialAnimTime>
 {
-    public new const short OpCode = 23;
+    public new const short OpCode = 22;
 
     public ulong Guid;
     public float DurationSeconds;

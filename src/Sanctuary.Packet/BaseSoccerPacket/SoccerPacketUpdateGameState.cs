@@ -9,6 +9,7 @@ namespace Sanctuary.Packet;
 // Drives the match state machine (see SoccerGameState - values confirmed from the client's
 // state-id -> name lookup function, e.g. InitializeGame, KickOff, PlayingSoccer, Halftime,
 // GoalCelebration, SuperShot, Winner, ...).
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 5).
 public class SoccerPacketUpdateGameState : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketUpdateGameState>
 {
     public new const short OpCode = 5;

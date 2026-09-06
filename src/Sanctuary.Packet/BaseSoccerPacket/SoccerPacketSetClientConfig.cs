@@ -8,9 +8,10 @@ namespace Sanctuary.Packet;
 // Sent once, right after the client's SoccerProcessor is created. This is what
 // WaitForWorldReady is blocked on client-side ("WaitForWorldReady: waiting for soccer
 // processor") before it will drop the loading screen for a soccer zone.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 7).
 public class SoccerPacketSetClientConfig : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketSetClientConfig>
 {
-    public new const short OpCode = 2;
+    public new const short OpCode = 7;
 
     public int GameId;
 

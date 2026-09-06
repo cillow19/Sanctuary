@@ -8,6 +8,7 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI: ".?AUSoccerPacketHighArcBall@@"
 // A lobbed pass/shot (LobKickRunning / HighKick* states) that flies to a target point along
 // an arc rather than a straight impulse.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 18).
 public class SoccerPacketHighArcBall : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketHighArcBall>
 {
     public new const short OpCode = 18;

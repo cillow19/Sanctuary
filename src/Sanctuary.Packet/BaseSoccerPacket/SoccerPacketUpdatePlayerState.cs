@@ -9,9 +9,10 @@ namespace Sanctuary.Packet;
 // Syncs which action/animation state a player (or goalie) is in - see SoccerPlayerAnimState,
 // whose names are confirmed from the client's cSoccerPlayerState* / cSoccerGoalieState*
 // string table (e.g. RunWithBall, SlideTackleStart, SuperKick, GoalieCatchHigh, ...).
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 14).
 public class SoccerPacketUpdatePlayerState : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketUpdatePlayerState>
 {
-    public new const short OpCode = 9;
+    public new const short OpCode = 14;
 
     public ulong Guid;
     public SoccerPlayerAnimState State;

@@ -7,9 +7,10 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI: ".?AUSoccerPacketUpdatePlayerControls@@"
 // Raw client input state, sent so other clients can predict/animate this player between
 // SoccerPacketUpdatePlayerPos updates (movement stick + kick charge/sprint buttons).
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 16).
 public class SoccerPacketUpdatePlayerControls : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketUpdatePlayerControls>
 {
-    public new const short OpCode = 8;
+    public new const short OpCode = 16;
 
     public ulong Guid;
 

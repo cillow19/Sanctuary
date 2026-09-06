@@ -7,9 +7,10 @@ namespace Sanctuary.Packet;
 
 // Confirmed via RTTI: ".?AUSoccerPacketBallBounce@@"
 // Fires the MG_Soccer_Ball_Bounce effect/sound at the given spot for everyone in the match.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 25).
 public class SoccerPacketBallBounce : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketBallBounce>
 {
-    public new const short OpCode = 19;
+    public new const short OpCode = 25;
 
     public Vector4 Position;
     public float Intensity;

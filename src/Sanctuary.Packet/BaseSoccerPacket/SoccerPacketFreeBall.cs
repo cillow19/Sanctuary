@@ -8,9 +8,10 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI: ".?AUSoccerPacketFreeBall@@"
 // Sent when the ball leaves a player's possession (tackled off, passed and not yet caught,
 // knocked loose, ...) so it becomes independently simulated again.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 12).
 public class SoccerPacketFreeBall : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketFreeBall>
 {
-    public new const short OpCode = 16;
+    public new const short OpCode = 12;
 
     public Vector4 Position;
     public Vector4 Velocity;

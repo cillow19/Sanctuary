@@ -7,9 +7,10 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI in FreeRealms.exe: ".?AUSoccerPacketRegisterPlayer@@"
 // Registers a participant's actor with the client's SoccerProcessor so it can be spawned on
 // the field. Sent for every player (and AI-filled slot) taking part in the match.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 3).
 public class SoccerPacketRegisterPlayer : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketRegisterPlayer>
 {
-    public new const short OpCode = 1;
+    public new const short OpCode = 3;
 
     public ulong Guid;
     public string Name = null!;

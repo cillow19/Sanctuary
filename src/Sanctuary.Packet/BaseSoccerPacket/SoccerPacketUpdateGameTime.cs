@@ -5,9 +5,10 @@ using Sanctuary.Core.IO;
 namespace Sanctuary.Packet;
 
 // Confirmed via RTTI: ".?AUSoccerPacketUpdateGameTime@@"
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 23).
 public class SoccerPacketUpdateGameTime : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketUpdateGameTime>
 {
-    public new const short OpCode = 6;
+    public new const short OpCode = 23;
 
     public int Period;
     public float TimeRemainingSeconds;

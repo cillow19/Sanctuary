@@ -9,9 +9,10 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI: ".?AUSoccerPacketSpawnPickUp@@"
 // Spawns one of the field pickups (see SoccerPickupType - Speed/Toughness/Charge/Knockdown/
 // MultiBall/Spring, names confirmed from the client's asset manifest and audio files).
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 9).
 public class SoccerPacketSpawnPickUp : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketSpawnPickUp>
 {
-    public new const short OpCode = 20;
+    public new const short OpCode = 9;
 
     public int PickupGuid;
     public SoccerPickupType Type;

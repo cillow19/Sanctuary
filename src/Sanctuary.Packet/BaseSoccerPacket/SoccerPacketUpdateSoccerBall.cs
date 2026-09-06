@@ -6,9 +6,10 @@ using Sanctuary.Core.IO;
 namespace Sanctuary.Packet;
 
 // Confirmed via RTTI: ".?AUSoccerPacketUpdateSoccerBall@@"
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 4).
 public class SoccerPacketUpdateSoccerBall : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketUpdateSoccerBall>
 {
-    public new const short OpCode = 14;
+    public new const short OpCode = 4;
 
     public Vector4 Position;
     public Vector4 Velocity;

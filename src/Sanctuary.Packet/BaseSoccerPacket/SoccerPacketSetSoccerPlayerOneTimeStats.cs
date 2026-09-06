@@ -8,9 +8,10 @@ namespace Sanctuary.Packet;
 // Confirmed via RTTI: ".?AUSoccerPacketSetSoccerPlayerOneTimeStats@@"
 // Applies an end-of-match stat/XP rollup exactly once (e.g. after SoccerGameState.Winner).
 // Server -> client only, same reasoning as SoccerPacketUpdatePlayerStats.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 21).
 public class SoccerPacketSetSoccerPlayerOneTimeStats : BaseSoccerPacket, ISerializablePacket
 {
-    public new const short OpCode = 12;
+    public new const short OpCode = 21;
 
     public ulong Guid;
 

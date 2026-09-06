@@ -10,9 +10,10 @@ namespace Sanctuary.Packet;
 // these already exist in CharacterStatId) after items/abilities have modified the base values.
 // Server -> client only, same as ClientUpdatePacketUpdateStat which this mirrors: CharacterStat
 // has no reader, only a writer.
+// SubOpCode confirmed from SoccerProcessor's message-dispatch switch (client FUN_00b80ac0, case 15).
 public class SoccerPacketUpdatePlayerStats : BaseSoccerPacket, ISerializablePacket
 {
-    public new const short OpCode = 10;
+    public new const short OpCode = 15;
 
     public ulong Guid;
 
