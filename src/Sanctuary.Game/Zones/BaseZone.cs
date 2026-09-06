@@ -190,6 +190,17 @@ public abstract class BaseZone : IZone, IDisposable
         return _npcs.TryAdd(npc.Guid, npc) && _entities.TryAdd(npc.Guid, npc);
     }
 
+    // Lets subclasses spawn their own Npc-derived types (e.g. SoccerBall) instead of only the
+    // plain Npc the other overloads hardcode, while still going through the same guid
+    // allocation and tile-tracking dictionaries as everything else.
+    protected bool TryCreateNpc<TNpc>(ulong? guid, Func<ulong, TNpc> factory, [MaybeNullWhen(false)] out TNpc npc)
+        where TNpc : Npc
+    {
+        npc = factory(GetNpcGuid(guid));
+
+        return _npcs.TryAdd(npc.Guid, npc) && _entities.TryAdd(npc.Guid, npc);
+    }
+
     public bool TryCreateNpc(ulong? guid, NpcDefinition definition, [MaybeNullWhen(false)] out Npc npc)
     {
         var scale = 1f;
