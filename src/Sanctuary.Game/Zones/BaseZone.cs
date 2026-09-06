@@ -59,6 +59,7 @@ public abstract class BaseZone : IZone, IDisposable
 
     public Vector4 SpawnPosition => _zoneDefinition.SpawnPosition;
     public Quaternion SpawnRotation => _zoneDefinition.SpawnRotation;
+    public string? Sky => _zoneDefinition.Sky;
 
     public IEnumerable<Npc> Npcs => _npcs.Values;
     public IEnumerable<Player> Players => _players.Values;

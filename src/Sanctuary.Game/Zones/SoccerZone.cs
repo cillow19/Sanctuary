@@ -11,9 +11,29 @@ namespace Sanctuary.Game.Zones;
 // (via live capture/debugger) - see BaseSoccerPacket.cs. No gameplay (teams/ball/scoring) yet.
 public sealed class SoccerZone : BaseZone
 {
+    // "soccerball_m" - the real ball model, already registered in Resources/Models.txt. The
+    // field itself (turf, goals, lines) is baked into the bw_soccer.gzne zone scene and needs
+    // no separate prop.
+    private const int SoccerBallModelId = 3027;
+
     public SoccerZone(SoccerZoneDefinition zoneDefinition, IServiceProvider serviceProvider)
         : base(zoneDefinition, serviceProvider)
     {
+    }
+
+    public override void OnStart()
+    {
+        base.OnStart();
+
+        if (TryCreateNpc(null, out var ball))
+        {
+            ball.ModelId = SoccerBallModelId;
+            ball.Scale = 1f;
+            ball.Static = true;
+            ball.Visible = true;
+
+            ball.UpdatePosition(SpawnPosition, SpawnRotation);
+        }
     }
 
     // Without these, the client sits in an infinite loading screen: WaitForWorldReady loops

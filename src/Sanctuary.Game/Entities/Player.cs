@@ -254,9 +254,8 @@ public sealed class Player : ClientPcData, IEntity
             Name = Zone.Name,
             Position = position,
             Rotation = rotation,
-            Sky = "sky_deep_mines.xml",
+            Sky = Zone.Sky,
             Id = Zone.Id,
-            GeometryId = 214,
             OverrideUpdateRadius = true
         };
 

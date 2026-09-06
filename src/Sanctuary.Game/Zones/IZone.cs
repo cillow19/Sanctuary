@@ -13,6 +13,7 @@ namespace Sanctuary.Game.Zones;
 public interface IZone : IScriptZone
 {
     int DefinitionId { get; }
+    string? Sky { get; }
     #region Events
 
     void OnStart();
