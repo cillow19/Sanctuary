@@ -11,7 +11,7 @@
   "Sky": "sky_briarwood.xml",
   "SpawnPosition": [
     325,
-    0.05,
+    0.1,
     150
   ],
   "SpawnRotation": [
