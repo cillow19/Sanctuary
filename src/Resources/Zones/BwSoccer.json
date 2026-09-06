@@ -10,9 +10,9 @@
   "EndLongitude": 4,
   "Sky": "sky_briarwood.xml",
   "SpawnPosition": [
-    317,
-    100,
-    215
+    296,
+    20,
+    223
   ],
   "SpawnRotation": [
     0,
