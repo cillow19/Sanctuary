@@ -1,0 +1,21 @@
+{
+  "$type": "Soccer",
+  "Id": 2,
+  "Name": "bw_soccer",
+  "Type": "Soccer",
+  "TileSize": 64,
+  "StartLatitude": -4,
+  "StartLongitude": -4,
+  "EndLatitude": 4,
+  "EndLongitude": 4,
+  "Sky": "sky_deep_mines.xml",
+  "SpawnPosition": [
+    0,
+    0,
+    0
+  ],
+  "SpawnRotation": [
+    0,
+    1
+  ]
+}

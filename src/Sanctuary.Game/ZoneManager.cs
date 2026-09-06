@@ -21,7 +21,9 @@ public class ZoneManager : IZoneManager
     private readonly ConcurrentDictionary<int, IZone> _zones = new();
 
     private const int StartingZoneDefinitionId = 1;
+    private const int SoccerZoneDefinitionId = 2;
     public StartingZone StartingZone { get; private set; } = null!;
+    public SoccerZone SoccerZone { get; private set; } = null!;
 
     public ZoneManager(
         ILoggerFactory loggerFactory,
@@ -40,6 +42,11 @@ public class ZoneManager : IZoneManager
             return false;
 
         StartingZone = startingZone;
+
+        if (!TryCreateSoccerZone(SoccerZoneDefinitionId, out var soccerZone))
+            return false;
+
+        SoccerZone = soccerZone;
 
         return true;
     }
@@ -87,6 +94,26 @@ public class ZoneManager : IZoneManager
             return false;
 
         zone = new StartingZone(startingZoneDefinition, _serviceProvider)
+        {
+            Id = _uniqueId++
+        };
+
+        zone.OnStart();
+
+        return _zones.TryAdd(zone.Id, zone);
+    }
+
+    private bool TryCreateSoccerZone(int definitionId, [MaybeNullWhen(false)] out SoccerZone zone)
+    {
+        zone = default;
+
+        if (!_resourceManager.Zones.TryGetValue(definitionId, out var zoneDefinition))
+            return false;
+
+        if (zoneDefinition is not SoccerZoneDefinition soccerZoneDefinition)
+            return false;
+
+        zone = new SoccerZone(soccerZoneDefinition, _serviceProvider)
         {
             Id = _uniqueId++
         };

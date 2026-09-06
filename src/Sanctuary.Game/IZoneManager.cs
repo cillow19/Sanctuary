@@ -8,6 +8,7 @@ namespace Sanctuary.Game;
 public interface IZoneManager
 {
     StartingZone StartingZone { get; }
+    SoccerZone SoccerZone { get; }
 
     bool Load();
 
