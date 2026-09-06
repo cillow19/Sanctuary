@@ -255,8 +255,7 @@ public sealed class Player : ClientPcData, IEntity
             Position = position,
             Rotation = rotation,
             Sky = Zone.Sky,
-            Id = Zone.Id,
-            OverrideUpdateRadius = true
+            Id = Zone.Id
         };
 
         SendTunneled(packetClientBeginZoning);
