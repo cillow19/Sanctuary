@@ -4,13 +4,14 @@ namespace Sanctuary.Packet;
 
 public class BaseSoccerPacket
 {
-    // TODO: CONFIRM. Ghidra confirms FreeRealms.exe has a distinct "BaseSoccerPacket" RTTI type
-    // (separate from the generic BaseMiniGamePacket used for turn-based games like Chess/TCG),
-    // but the real top-level opcode value could not be recovered from static analysis alone.
-    // Placed outside the 1-211 range already used/verified elsewhere in this project so it can't
-    // collide with a real opcode. Replace with the confirmed value (e.g. from a packet capture)
-    // before wiring this into the tunnel handlers for real traffic.
-    public const short OpCode = 220;
+    // CONFIRMED (disassembly, not a guess): every concrete SoccerPacket* constructor calls a
+    // single shared base constructor (client FUN_00b730a0) passing its own confirmed SubOpCode
+    // as a literal - cross-checked against SoccerPacketUpdatePlayerPos (passes 1) and
+    // SoccerPacketGoalMade (passes 2), each then setting its own already-known vtable address.
+    // That shared constructor itself hardcodes "MOV [this+4], 0x4C" before either call sets its
+    // SubOpCode - i.e. the real client literally writes 76 as BaseSoccerPacket's own opcode.
+    // Doesn't collide with any opcode already confirmed elsewhere in this project.
+    public const short OpCode = 76;
 
     // The 24 concrete SoccerPacket* SubOpCode values below (see each file) ARE confirmed for
     // real: traced from the client's SoccerProcessor message-dispatch switch (FUN_00b80ac0),
