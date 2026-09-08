@@ -60,26 +60,20 @@ public sealed class SoccerZone : BaseZone
     }
 
     // Minimal single-player test bootstrap through the real Soccer protocol - not real
-    // matchmaking/teams. The client can only act on this once BaseSoccerPacket.OpCode is
-    // confirmed; until then these are sent but never routed to anything client-side.
+    // matchmaking/teams. Field shapes below are now the real, disassembly-confirmed wire
+    // layouts (see each packet's own file); most individual field *meanings* are still
+    // unconfirmed placeholders (Unknown1, Unknown2, ...) sent as zero/empty until live testing
+    // narrows them down.
     private void SendMatchBootstrap(Player player)
     {
         player.SendTunneled(new SoccerPacketSetClientConfig
         {
-            GameId = 1,
-            MapId = 0, // Briarwood
-            PlayersPerTeam = 1,
-            PeriodLengthSeconds = 300,
-            MaxScore = 5,
-            PickupsEnabled = false,
-            SuddenDeathEnabled = false
+            ConfigName = "bw_soccer"
         });
 
         player.SendTunneled(new SoccerPacketRegisterPlayer
         {
             Guid = player.Guid,
-            Name = player.Name.FullName,
-            TeamId = 0,
             IsGoalie = false,
             IsLocalPlayer = true
         });
@@ -92,15 +86,13 @@ public sealed class SoccerZone : BaseZone
 
         player.SendTunneled(new SoccerPacketTeamColours
         {
-            TeamId = 0,
-            PrimaryColor = 0x1E90FFu,
-            SecondaryColor = 0xFFFFFFu
+            TeamAName = "Red",
+            TeamBName = "Blue"
         });
 
         player.SendTunneled(new SoccerPacketUpdateGameState
         {
-            State = SoccerGameState.PlayingSoccer,
-            StateTimeMs = 0
+            State = SoccerGameState.PlayingSoccer
         });
     }
 }
