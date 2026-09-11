@@ -121,7 +121,7 @@ public abstract class ConsumableAbility(AbilityServices services)
 
         var effectPacket = new PlayerUpdatePacketPlayCompositeEffect
         {
-            Guid = player.Guid,
+            TargetPlayerGuid = player.Guid,
             CompositeEffectId = effectId,
             Clear = true
         };
@@ -173,7 +173,7 @@ public abstract class ConsumableAbility(AbilityServices services)
     {
         var poofEffect = new PlayerUpdatePacketPlayCompositeEffect
         {
-            Guid = npc.Guid,
+            TargetPlayerGuid = npc.Guid,
             CompositeEffectId = poofEffectId,
             Position = position,
             Clear = false

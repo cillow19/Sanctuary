@@ -313,9 +313,6 @@ public class ResourceManager : IResourceManager
 
         if (!PointOfInterests.Load(PointOfInterestsFile))
             return false;
-        
-        if (!Abilities.Load(AbilitiesFile))
-            return false;
 
         if (!Consumables.Load(ConsumablesFile))
             return false;
@@ -403,8 +400,6 @@ public class ResourceManager : IResourceManager
                 loaded = PlayerTitles.Load(PlayerTitlesFile);
             else if (e.FullPath == PointOfInterestsFile)
                 loaded = PointOfInterests.Load(PointOfInterestsFile);
-            else if (e.FullPath == AbilitiesFile)
-                loaded = Abilities.Load(AbilitiesFile);
             else if (e.FullPath == NpcsFile)
                 loaded = Npcs.Load(NpcsFile);
             else if (e.FullPath == NameFilterFile)

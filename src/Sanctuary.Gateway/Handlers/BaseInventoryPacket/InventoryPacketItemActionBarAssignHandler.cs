@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -23,33 +23,6 @@ public static class InventoryPacketItemActionBarAssignHandler
         _logger = loggerFactory.CreateLogger(nameof(InventoryPacketItemActionBarAssignHandler));
 
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
-    }
-
-    private static void ClearDuplicateAssignments(GatewayConnection connection, int packetGuid, int targetSlot)
-    {
-        Dictionary<int, int> actionBarSlots = connection.Player.ActionBarSlots;
-        List<int> duplicateSlots = actionBarSlots
-            .Where(x => x.Value == packetGuid && x.Key != targetSlot)
-            .Select(x => x.Key)
-            .ToList();
-
-        foreach (int duplicateSlot in duplicateSlots)
-        {
-            actionBarSlots.Remove(duplicateSlot);
-
-            connection.SendTunneled(new ClientUpdatePacketUpdateActionBarSlot
-            {
-                Data =
-                {
-                    Id = 2,
-                    Slot = duplicateSlot
-                },
-                Slot =
-                {
-                    IsEmpty = true
-                }
-            });
-        }
     }
 
     public static bool HandlePacket(GatewayConnection connection, ReadOnlySpan<byte> data)
@@ -81,7 +54,6 @@ public static class InventoryPacketItemActionBarAssignHandler
 
         if (packet.Guid == 0)
         {
-            connection.Player.ActionBarSlots.Remove(packet.Slot);
             clientUpdatePacketUpdateActionBarSlot.Slot.IsEmpty = true;
 
             connection.Player.ActionBars[2].Slots.Remove(packet.Slot);
@@ -115,12 +87,10 @@ public static class InventoryPacketItemActionBarAssignHandler
 
         clientUpdatePacketUpdateActionBarSlot.Slot.IsEmpty = false;
 
-        connection.Player.ActionBarSlots[packet.Slot] = packet.Guid;
-
-        clientUpdatePacketUpdateActionBarSlot.Slot.IsEmpty = false;
         clientUpdatePacketUpdateActionBarSlot.Slot.IconId = clientItemDefinition.Icon.Id;
         clientUpdatePacketUpdateActionBarSlot.Slot.IconTintId = iconTintId;
         clientUpdatePacketUpdateActionBarSlot.Slot.NameId = clientItemDefinition.NameId;
+
         clientUpdatePacketUpdateActionBarSlot.Slot.Unknown5 = 1;
         clientUpdatePacketUpdateActionBarSlot.Slot.Unknown6 = 4;
         clientUpdatePacketUpdateActionBarSlot.Slot.Unknown7 = 15;
