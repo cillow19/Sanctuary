@@ -34,6 +34,7 @@ services:
     volumes:
       - logs:/app/Logs
       - ./src/Resources:/app/Resources
+      - ./src/Scripts:/app/Scripts
       - ./database:/data
     environment:
       - Database__Provider=1
