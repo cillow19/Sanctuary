@@ -34,6 +34,19 @@ namespace Sanctuary.Packet;
 //   8. nine bare NaN-checked floats (FUN_008d53b0 x9)
 //   9. two bare 32-bit ints with NO NaN check (i.e. genuinely ints, not floats stored as ints)
 //  10. one final bare NaN-checked float (FUN_008d53b0)
+//
+// IMPORTANT gating behaviour CONFIRMED by decompiling the case-7 handler itself (not just its
+// deserializer): receiving this packet always deserializes and stores it (FUN_00b79ed0 does a
+// straight field-for-field copy across exactly this same offset range, 0x04-0xec, which is a
+// strong independent confirmation the field count/order above is right), but it only has any
+// visible effect - applying config to the field/goal scene, syncing already-registered players,
+// and (one-shot, the very first time only) constructing the client's own SoccerBall actor via
+// FUN_00cde1c0(0) - if the client's SoccerProcessor already has a non-null "soccer scene"
+// pointer for the current zone (this+0x214 -> +0xec). That pointer is populated automatically,
+// client-side only, when the zone asset itself (e.g. the real bw_soccer.gzne) carries soccer
+// scene data - nothing our server sends can set it. If it's ever null, this packet silently
+// no-ops beyond caching a couple of floats: no ball, no visible reaction at all. Since bw_soccer
+// is the real client asset, this should already be satisfied for us.
 public class SoccerPacketSetClientConfig : BaseSoccerPacket, ISerializablePacket, IDeserializable<SoccerPacketSetClientConfig>
 {
     public new const short OpCode = 7;
