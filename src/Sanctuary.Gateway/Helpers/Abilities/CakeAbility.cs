@@ -84,7 +84,7 @@ public sealed class CakeAbility(AbilityServices services) : ConsumableAbility(se
                     {
                         player.SendTunneledToVisible(new PlayerUpdatePacketPlayCompositeEffect
                         {
-                            TargetPlayerGuid = cakeNpc.Guid,
+                            Guid = cakeNpc.Guid,
                             CompositeEffectId = effectId,
                             Position = cakeNpc.Position,
                             Clear = true
