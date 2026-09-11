@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using Sanctuary.Core.Helpers;
 using Sanctuary.Database;
 using Sanctuary.Game;
 using Sanctuary.Game.Entities;
-using Sanctuary.Game.Resources.Definitions;
+using Sanctuary.Gateway.Helpers.Abilities;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
 using Sanctuary.Packet.Common.Attributes;
@@ -24,6 +21,10 @@ namespace Sanctuary.Gateway.Handlers;
 public static class AbilityPacketClientRequestStartAbilityHandler
 {
     private static ILogger _logger = null!;
+    private static IResourceManager _resourceManager = null!;
+
+    // Tried in order; first match handles it. The default matches anything, so it goes last.
+    private static ConsumableAbility[] _consumableAbilities = [];
 
     // Built at startup from ClientItemDefinitions: ActivatableAbilityId -> CompositeEffectId
     private static IResourceManager _resourceManager = null!;
@@ -32,10 +33,24 @@ public static class AbilityPacketClientRequestStartAbilityHandler
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-        _logger = loggerFactory.CreateLogger(nameof(AbilityPacketClientRequestStartAbilityHandler));
 
+        _logger = loggerFactory.CreateLogger(nameof(AbilityPacketClientRequestStartAbilityHandler));
         _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
-        _dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>();
+
+        var abilityServices = new AbilityServices(
+            _logger,
+            _resourceManager,
+            serviceProvider.GetRequiredService<IDbContextFactory<DatabaseContext>>());
+
+        _consumableAbilities =
+        [
+            new BoomboxAbility(abilityServices),
+            new CakeAbility(abilityServices),
+            new SillyStringAbility(abilityServices),
+            new TransformFoodAbility(abilityServices),
+            new FoodEffectAbility(abilityServices),
+            new DefaultConsumableAbility(abilityServices),
+        ];
     }
 
     private static void HandleActionBarUpdate(GatewayConnection connection, ClientItem item, bool isDeleted)
@@ -204,53 +219,38 @@ public static class AbilityPacketClientRequestStartAbilityHandler
             return false;
         }
 
-        _logger.LogTrace("Received {name} packet. ( {packet} )", nameof(AbilityPacketClientRequestStartAbility), packet);
-         
-        if (connection.Player.ActionBarSlots.TryGetValue(packet.Data.Slot, out var itemGuid))
+        if (packet.Data.Id == ConsumableAbility.ActionBarId)
+            return HandleItemAbility(connection.Player, packet);
+
+        return ConsumableAbility.SendFailure(connection.Player);
+    }
+
+    private static bool HandleItemAbility(Player player, AbilityPacketClientRequestStartAbility packet)
+    {
+        player.ActionBars.TryGetValue(ConsumableAbility.ActionBarId, out var actionBar);
+
+        if (actionBar is null || !actionBar.Slots.TryGetValue(packet.Data.Slot, out var slot) || slot.IsEmpty)
+            return ConsumableAbility.SendFailure(player);
+
+        if (!player.ActionBarItemGuids.TryGetValue(ConsumableAbility.ActionBarId, out var slotItemGuids) ||
+            !slotItemGuids.TryGetValue(packet.Data.Slot, out var itemGuid))
+            return ConsumableAbility.SendFailure(player);
+
+        var clientItem = player.Items.FirstOrDefault(x => x.Id == itemGuid);
+
+        if (clientItem is null)
+            return ConsumableAbility.SendFailure(player);
+
+        if (!_resourceManager.ClientItemDefinitions.TryGetValue(clientItem.Definition, out var itemDefinition) ||
+            itemDefinition.ActivatableAbilityId == 0)
+            return ConsumableAbility.SendFailure(player);
+
+        foreach (var ability in _consumableAbilities)
         {
-            _logger.LogTrace("Slot {slot} -> Item {guid}", packet.Data.Slot, itemGuid);
-            var item = connection.Player.Items.SingleOrDefault(x => x.Id == itemGuid);
-            if (item != null && _resourceManager.Abilities.TryGetValue(item.Definition, out var abilityDefinition))
-            {
-                PlayerUpdatePacketPlayCompositeEffect? effect = null;
-
-                switch (abilityDefinition)
-                {
-                    case PartyAbilityDefinition partyAbility:
-                        _logger.LogTrace("Slot {slot} -> Item {guid} -> PartyAbility {abilityId}", packet.Data.Slot, itemGuid, partyAbility.AbilityId);
-                        effect = HandlePartyAbility(connection, partyAbility);
-                        break;
-
-                    //case OtherAbility miscAbility:
-                    //    _logger.LogTrace("Slot {slot} -> Item {guid} -> Misc
-                    // ...
-
-                    default:
-                        _logger.LogWarning("Slot {slot} -> Item {guid} -> Unknown ability type {type}", packet.Data.Slot, itemGuid, abilityDefinition.GetType().Name);
-                        break;
-                }
-
-                if (effect != null)
-                {
-                    DecrementItem(connection, item);
-                    connection.Player.SendTunneledToVisible(effect, sendToSelf: true);
-                    return true;
-                }
-            } 
-        }
-        else
-        {
-            _logger.LogTrace("No action bar slot mapping for slot {slot}", packet.Data.Slot);
+            if (ability.Matches(itemDefinition))
+                return ability.HandleAbility(player, packet, packet.Data.Slot, clientItem, itemDefinition);
         }
 
-        var abilityPacketFailed = new AbilityPacketFailed
-        {
-            // You can't use that ability right now.
-            StringId = 3079
-        };
-
-        connection.SendTunneled(abilityPacketFailed);
-
-        return true;
+        return ConsumableAbility.SendFailure(player);
     }
 }

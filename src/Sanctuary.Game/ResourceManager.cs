@@ -49,7 +49,7 @@ public class ResourceManager : IResourceManager
     public static readonly string QuickChatsFile = Path.Combine(BaseDirectory, "QuickChats.json");
     public static readonly string PlayerTitlesFile = Path.Combine(BaseDirectory, "PlayerTitles.json");
     public static readonly string PointOfInterestsFile = Path.Combine(BaseDirectory, "PointOfInterests.json");
-    public static readonly string AbilitiesFile = Path.Combine(BaseDirectory, "Abilities.json");
+    public static readonly string ConsumablesFile = Path.Combine(BaseDirectory, "Consumables.json");
     public static readonly string NpcsFile = Path.Combine(BaseDirectory, "Npcs.json");
     public static readonly string NameFilterFile = Path.Combine(BaseDirectory, "NameFilter.txt");
     public static readonly string MapsDirectory = Path.Combine(BaseDirectory, "Maps");
@@ -90,7 +90,7 @@ public class ResourceManager : IResourceManager
     public ProfileDefinitionCollection Profiles { get; }
     public QuickChatDefinitionCollection QuickChats { get; }
     public PointOfInterestDefinitionCollection PointOfInterests { get; }
-    public AbilityDefinitionCollection Abilities { get; }
+    public ConsumableCollection Consumables { get; }
     public NpcDefinitionCollection Npcs { get; }
     public NameFilterCollection NameFilter { get; }
     public MapGraphCollection Maps { get; }
@@ -143,7 +143,7 @@ public class ResourceManager : IResourceManager
         QuickChats = new(_logger);
         PlayerTitles = new(_logger);
         PointOfInterests = new(_logger);
-        Abilities = new(_logger);
+        Consumables = new(_logger);
         Npcs = new(_logger);
         NameFilter = new(_logger);
         Maps = new(_logger);
@@ -315,6 +315,9 @@ public class ResourceManager : IResourceManager
             return false;
         
         if (!Abilities.Load(AbilitiesFile))
+            return false;
+
+        if (!Consumables.Load(ConsumablesFile))
             return false;
 
         if (!Npcs.Load(NpcsFile))
