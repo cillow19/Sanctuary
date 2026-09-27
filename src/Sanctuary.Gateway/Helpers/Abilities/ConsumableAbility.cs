@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Threading;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,7 +10,7 @@ using Sanctuary.Core.Helpers;
 using Sanctuary.Database;
 using Sanctuary.Game;
 using Sanctuary.Game.Entities;
-using Sanctuary.Game.Zones;
+using Sanctuary.Game.Helpers;
 using Sanctuary.Packet;
 using Sanctuary.Packet.Common;
 
@@ -24,10 +23,12 @@ public sealed record AbilityServices(
 
 public abstract class ConsumableAbility(AbilityServices services)
 {
-    private static int _castFxTagCounter = 5000;
-
     internal const int ActionBarId = 2;
     protected const int IdleAnimationId = 1;
+
+    protected const int MinCooldownMs = 3000;
+
+    protected static int ClampCooldown(int cooldownMs) => Math.Max(cooldownMs, MinCooldownMs);
 
     protected readonly ILogger _logger = services.Logger;
     protected readonly IResourceManager _resourceManager = services.ResourceManager;
@@ -38,7 +39,9 @@ public abstract class ConsumableAbility(AbilityServices services)
 
     public abstract bool HandleAbility(Player player, AbilityPacketClientRequestStartAbility packet, int slot, ClientItem clientItem, ClientItemDefinition itemDefinition);
 
-    protected static int NextEffectTagId() => Interlocked.Increment(ref _castFxTagCounter);
+    // Global, not scoped to the player - shared with Player's own effect tags (see PlayerEffect)
+    // so two unrelated tags never collide on the same actor.
+    protected static int NextEffectTagId() => EffectTagIdGenerator.Next();
 
     // Color-variant items (the 5 Silly String Can colors) share one Icon.Id and differ only by TintId.
     protected static int IconTintId(ClientItem clientItem, int defaultTintId) =>
@@ -114,6 +117,28 @@ public abstract class ConsumableAbility(AbilityServices services)
         return true;
     }
 
+    // Shared by FoodEffectAbility and CakeAbility (some cake interactions grant an aura rather than a transform).
+    protected static void ApplyFoodEffect(Player player, int nameId, int effectId, int delayMs = 0)
+    {
+        if (effectId == 0)
+            return;
+
+        if (player.ActiveFoodEffectId != 0)
+            player.RemoveEffect(player.ActiveFoodEffectId);
+
+        player.ActiveFoodEffectId = player.AddEffect(new PlayerEffect
+        {
+            ExpiresAt = DateTimeOffset.UtcNow.AddMilliseconds(delayMs + FoodEffectDurationMs),
+            WorldEffectId = effectId,
+            WorldEffectStartsAt = delayMs > 0 ? DateTimeOffset.UtcNow.AddMilliseconds(delayMs) : null,
+            BuffIconId = Player.ChangeFormBuffIconId,
+            BuffNameId = nameId,
+            OnRemoved = () => player.ActiveFoodEffectId = 0
+        });
+    }
+
+    private const int FoodEffectDurationMs = 1_800_000;
+
     protected static void PlayEffect(Player player, int effectId, int delayMs = 0)
     {
         if (effectId == 0)
@@ -152,10 +177,7 @@ public abstract class ConsumableAbility(AbilityServices services)
 
     protected static Npc? SpawnNpc(Player player, Vector4 position, Action<Npc> configure)
     {
-        if (player.Zone is not StartingZone startingZone)
-            return null;
-
-        if (!startingZone.TryCreateNpc(out var npc))
+        if (!player.Zone.TryCreateNpc(out var npc))
             return null;
 
         configure(npc);

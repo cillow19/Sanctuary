@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using Sanctuary.Core.Collections;
 using Sanctuary.Core.IO;
+using Sanctuary.Game;
 using Sanctuary.Game.ChatCommands;
 using Sanctuary.Game.Helpers;
 using Sanctuary.Game.Interactions;
@@ -26,6 +27,7 @@ public sealed class Player : ClientPcData, IEntity
 {
     private readonly UdpConnection _connection;
     private readonly IResourceManager _resourceManager;
+    private readonly IZoneManager _zoneManager;
 
     public bool Visible { get; set; }
 
@@ -67,11 +69,11 @@ public sealed class Player : ClientPcData, IEntity
 
     public Dictionary<int, Dictionary<int, int>> ActionBarItemGuids { get; set; } = new();
 
-    public int TemporaryAppearance { get; set; }
-    public DateTimeOffset? TemporaryAppearanceExpiresAt { get; set; }
-    private int _temporaryAppearanceEffectId;
+    public int TemporaryAppearance { get; private set; }
 
     public ulong LastSillyStringTarget { get; set; }
+
+    public int ActiveFoodEffectId { get; set; }
 
     private readonly ConcurrentDictionary<int, DateTimeOffset> _itemCooldowns = new();
 
@@ -81,7 +83,9 @@ public sealed class Player : ClientPcData, IEntity
     public void StartItemCooldown(int itemDefinitionId, int cooldownMs) =>
         _itemCooldowns[itemDefinitionId] = DateTimeOffset.UtcNow.AddMilliseconds(cooldownMs);
 
-    // Min-heap ordered by send time
+    // For one-off delayed packets unrelated to tracked effects (e.g. a silly string reset
+    // animation, a boombox poof) - see PlayerEffect/AddEffect for anything with its own state.
+    // Min-heap ordered by send time.
     private readonly PriorityQueue<(ISerializablePacket Packet, bool SendToSelf), DateTimeOffset> _delayedPackets = new();
 
     // One scheduled personal-UI packet per action bar slot (the cooldown re-enable) - keyed, not queued,
@@ -99,12 +103,15 @@ public sealed class Player : ClientPcData, IEntity
     public Vector4 StartingZonePosition { get; set; }
     public Quaternion StartingZoneRotation { get; set; }
 
-    public Player(BaseZone zone, UdpConnection connection, IResourceManager resourceManager)
+    public ConcurrentSet<OneTimeNotification> SeenOneTimeNotifications { get; } = [];
+
+    public Player(BaseZone zone, UdpConnection connection, IResourceManager resourceManager, IZoneManager zoneManager)
     {
         Zone = zone;
 
         _connection = connection;
         _resourceManager = resourceManager;
+        _zoneManager = zoneManager;
     }
 
     #region Connection
@@ -217,11 +224,7 @@ public sealed class Player : ClientPcData, IEntity
     {
         var now = DateTimeOffset.UtcNow;
 
-        if (TemporaryAppearanceExpiresAt.HasValue &&
-            TemporaryAppearanceExpiresAt.Value <= now)
-        {
-            RemoveTemporaryAppearance();
-        }
+        TickEffects(now);
 
         while (true)
         {
@@ -336,60 +339,48 @@ public sealed class Player : ClientPcData, IEntity
         ZoneTile = newZoneTile;
     }
 
-    public void TeleportToZone(IZone zone, Vector4 position, Quaternion rotation)
+    public bool TeleportToZone(IZone destinationZone, Vector4 position, Quaternion rotation)
     {
-        if (Zone == zone)
-            return;
+        if (Zone == destinationZone)
+            return true;
 
-        if (Zone is StartingZone)
+        if (Zone is WorldZone)
         {
             StartingZonePosition = Position;
             StartingZoneRotation = Rotation;
         }
 
-        if (Mount is not null)
-            Mount.TeleportToZone(zone, position, rotation);
+        if (!_zoneManager.TryMovePlayerToZone(destinationZone.DefinitionId, destinationZone.OwnerId, this, position, rotation, out var zone))
+            return false;
 
-        RemoveFromVisibleEntities(true);
+        if (_appearanceEffectId != 0 && _effects.TryGetValue(_appearanceEffectId, out var appearanceEffect) && appearanceEffect.ExpiresAt is null)
+            RemoveTemporaryAppearance();
 
-        ZoneTile.Entities.Remove(Guid, out _);
-
-        Zone.TryRemovePlayer(Guid);
-
-        // Add to new zone/zonetile
-
-        zone.TryAddPlayer(this);
-
-        // Teleport to new zone
-
-        Visible = false;
-
-        Zone = zone;
-
-        ZoneTile = ZoneTile.Empty;
-
-        UpdatePosition(position, rotation);
+        if (Mount is not null && !Mount.TeleportToZone(zone, position, rotation))
+            Dismount();
 
         var packetClientBeginZoning = new PacketClientBeginZoning
         {
             Name = Zone.Name,
             Position = position,
             Rotation = rotation,
-            Sky = "sky_deep_mines.xml",
+            Sky = Zone.Sky,
             Id = Zone.Id,
             GeometryId = 214,
             OverrideUpdateRadius = true
         };
 
         SendTunneled(packetClientBeginZoning);
+
+        return true;
     }
 
     private void UpdateZoneArea()
     {
-        if (Zone is not StartingZone startingZone)
+        if (Zone is not WorldZone worldZone)
             return;
 
-        var zoneAreaId = startingZone.GetZoneAreaId(Position);
+        var zoneAreaId = worldZone.GetZoneAreaId(Position);
 
         if (ZoneAreaId == zoneAreaId)
             return;
@@ -573,7 +564,7 @@ public sealed class Player : ClientPcData, IEntity
         {
             commandPacketInteractionList.List.Interactions.Add(StopIgnoringInteraction.Data);
         }
-        else
+        else if (!Friends.Any(x => x.Guid == player.Guid))
         {
             commandPacketInteractionList.List.Interactions.Add(IgnoreInteraction.Data);
         }
@@ -721,33 +712,169 @@ public sealed class Player : ClientPcData, IEntity
         return packet;
     }
 
-    public void ApplyTemporaryAppearance(int modelId, int durationMs, int effectId = 0)
+    public const int ChangeFormBuffIconId = 3843;
+
+    public void ApplyTemporaryAppearance(int modelId, int durationMs, int effectId = 0, int buffNameId = 0)
     {
-        TemporaryAppearance = modelId;
-        _temporaryAppearanceEffectId = effectId;
+        if (_appearanceEffectId != 0)
+            RemoveEffect(_appearanceEffectId);
 
-        if (durationMs > 0)
-            TemporaryAppearanceExpiresAt = DateTimeOffset.UtcNow.AddMilliseconds(durationMs);
-
-        if (effectId != 0)
-            SendTunneledToVisible(new PlayerUpdatePacketPlayCompositeEffect { Guid = Guid, CompositeEffectId = effectId, Position = Position, Clear = false }, true);
-
-        SendTunneledToVisible(new PlayerUpdatePacketUpdateTemporaryAppearance { Guid = Guid, TemporaryAppearance = modelId }, true);
+        _appearanceEffectId = AddEffect(new PlayerEffect
+        {
+            ExpiresAt = durationMs > 0 ? DateTimeOffset.UtcNow.AddMilliseconds(durationMs) : null,
+            AppearanceModelId = modelId,
+            AppearancePoofEffectId = effectId,
+            BuffIconId = buffNameId != 0 ? ChangeFormBuffIconId : 0,
+            BuffNameId = buffNameId,
+            OnRemoved = () => _appearanceEffectId = 0
+        });
     }
 
     public void RemoveTemporaryAppearance()
     {
-        TemporaryAppearance = 0;
-        TemporaryAppearanceExpiresAt = null;
+        if (_appearanceEffectId != 0)
+            RemoveEffect(_appearanceEffectId);
+    }
 
-        if (_temporaryAppearanceEffectId != 0)
+    #region Effects
+
+    // A tracked, timed effect on the player - a transformation, a food effect aura, or both a
+    // world-visible composite effect and a buff bar icon at once. One tick loop expires them,
+    // one pair of methods applies/unapplies whatever packets each of those parts needs, so adding
+    // a new kind of effect doesn't mean adding another set of ad hoc fields and conditions.
+    private readonly ConcurrentDictionary<int, PlayerEffect> _effects = new();
+    private int _appearanceEffectId;
+
+    public int AddEffect(PlayerEffect effect)
+    {
+        effect.Id = EffectTagIdGenerator.Next();
+        _effects[effect.Id] = effect;
+
+        ApplyEffect(effect);
+
+        return effect.Id;
+    }
+
+    public void RemoveEffect(int id)
+    {
+        if (!_effects.TryRemove(id, out var effect))
+            return;
+
+        UnapplyEffect(effect);
+        effect.OnRemoved?.Invoke();
+    }
+
+    private void TickEffects(DateTimeOffset now)
+    {
+        List<PlayerEffect> starting = [];
+        List<int> expired = [];
+
+        foreach (var effect in _effects.Values)
         {
-            SendTunneledToVisible(new PlayerUpdatePacketPlayCompositeEffect { Guid = Guid, CompositeEffectId = _temporaryAppearanceEffectId, Position = Position, Clear = false }, true);
-            _temporaryAppearanceEffectId = 0;
+            if (!effect.WorldEffectStarted && effect.WorldEffectId != 0 &&
+                (effect.WorldEffectStartsAt is null || effect.WorldEffectStartsAt <= now))
+                starting.Add(effect);
+
+            if (effect.ExpiresAt is { } expiresAt && expiresAt <= now)
+                expired.Add(effect.Id);
         }
 
-        SendTunneledToVisible(new PlayerUpdatePacketRemoveTemporaryAppearance { Guid = Guid }, true);
+        foreach (var effect in starting)
+            StartWorldEffect(effect);
+
+        foreach (var id in expired)
+            RemoveEffect(id);
     }
+
+    private void ApplyEffect(PlayerEffect effect)
+    {
+        if (effect.AppearanceModelId != 0)
+        {
+            TemporaryAppearance = effect.AppearanceModelId;
+
+            if (effect.AppearancePoofEffectId != 0)
+                SendTunneledToVisible(new PlayerUpdatePacketPlayCompositeEffect { Guid = Guid, CompositeEffectId = effect.AppearancePoofEffectId, Position = Position, Clear = false }, true);
+
+            SendTunneledToVisible(new PlayerUpdatePacketUpdateTemporaryAppearance { Guid = Guid, TemporaryAppearance = effect.AppearanceModelId }, true);
+
+            ResyncWorldEffects();
+        }
+
+        if (effect.WorldEffectId != 0 && (effect.WorldEffectStartsAt is null || effect.WorldEffectStartsAt <= DateTimeOffset.UtcNow))
+            StartWorldEffect(effect);
+
+        if (effect.BuffIconId != 0)
+        {
+            var durationSeconds = effect.ExpiresAt is { } expiresAt
+                ? Math.Max(1, (int)(expiresAt - DateTimeOffset.UtcNow).TotalSeconds)
+                : 0;
+
+            SendTunneled(new ClientUpdatePacketAddEffectTag
+            {
+                TagId = effect.Id,
+                EffectTag = new EffectTag
+                {
+                    InstanceId = effect.Id,
+                    Duration = durationSeconds,
+                    StartTime = 0,
+                    StopTime = (uint)-durationSeconds
+                },
+                IconId = effect.BuffIconId,
+                NameId = effect.BuffNameId
+            });
+        }
+    }
+
+    private void UnapplyEffect(PlayerEffect effect)
+    {
+        if (effect.AppearanceModelId != 0)
+        {
+            TemporaryAppearance = 0;
+            SendTunneledToVisible(new PlayerUpdatePacketRemoveTemporaryAppearance { Guid = Guid }, true);
+            ResyncWorldEffects();
+        }
+
+        if (effect.WorldEffectStarted)
+        {
+            SendTunneledToVisible(new PlayerUpdatePacketRemoveEffectTagCompositeEffect { Guid = Guid, TagId = effect.WorldTagId }, true);
+            effect.WorldEffectStarted = false;
+        }
+
+        if (effect.BuffIconId != 0)
+            SendTunneled(new ClientUpdatePacketRemoveEffectTag { TagId = effect.Id });
+    }
+
+    private void StartWorldEffect(PlayerEffect effect)
+    {
+        effect.WorldEffectStarted = true;
+        effect.WorldTagId = EffectTagIdGenerator.Next();
+
+        SendTunneledToVisible(new PlayerUpdatePacketAddEffectTagCompositeEffect
+        {
+            Guid = Guid,
+            TagId = effect.WorldTagId,
+            CompositeEffectId = effect.WorldEffectId,
+            SourceGuid = Guid
+        }, true);
+    }
+
+    // A temporary appearance change is unreliable about which world-visible effect tags survive
+    // it - sometimes a tag keeps playing across it, sometimes it doesn't, and the client also
+    // ignores a repeat of a tag id it's already seen for this actor. Rather than guess which case
+    // this is, explicitly drop and re-add every effect that's supposed to be showing one, with a
+    // fresh id, on every appearance change in either direction.
+    private void ResyncWorldEffects()
+    {
+        var active = _effects.Values.Where(e => e.WorldEffectStarted).ToList();
+
+        foreach (var effect in active)
+        {
+            SendTunneledToVisible(new PlayerUpdatePacketRemoveEffectTagCompositeEffect { Guid = Guid, TagId = effect.WorldTagId }, true);
+            StartWorldEffect(effect);
+        }
+    }
+
+    #endregion
 
     #region Combat
 
@@ -790,25 +917,25 @@ public sealed class Player : ClientPcData, IEntity
             return false;
         }
 
-        var weaponDefinitionId = GetEquippedWeaponDefinitionId();
-        var (basic, special) = ResolveWeaponAbilities(kit, weaponDefinitionId);
-
-        var weaponNameId = 0;
-        if (_resourceManager.ClientItemDefinitions.TryGetValue(weaponDefinitionId, out var weaponDefinition))
-            weaponNameId = weaponDefinition.NameId;
-
         var setDefinition = new AbilityPacketSetDefinition { ProfileId = kit.ProfileId };
 
-        if (basic is not null)
-        {
-            setDefinition.AbilitySet.Abilities[0] = CreateToolbarSlot(kit.BasicSlotDefId, basic.IconId, weaponNameId, manaCost: 0);
-            SendAbilityDefinition(kit.BasicSlotDefId, basic);
-        }
+        var weaponDefinitionId = GetEquippedWeaponDefinitionId();
 
-        if (special is not null)
+        if (_resourceManager.ClientItemDefinitions.TryGetValue(weaponDefinitionId, out var weaponDefinition))
         {
-            setDefinition.AbilitySet.Abilities[1] = CreateToolbarSlot(kit.SpecialSlotDefId, special.IconId, weaponNameId, special.EnergyCost);
-            SendAbilityDefinition(kit.SpecialSlotDefId, special);
+            var (basic, special) = ResolveWeaponAbilities(kit, weaponDefinitionId);
+
+            if (basic is not null)
+            {
+                setDefinition.AbilitySet.Abilities[0] = CreateToolbarSlot(kit.BasicSlotDefId, basic.IconId, weaponDefinition.NameId, manaCost: 0);
+                SendAbilityDefinition(kit.BasicSlotDefId, basic);
+            }
+
+            if (special is not null)
+            {
+                setDefinition.AbilitySet.Abilities[1] = CreateToolbarSlot(kit.SpecialSlotDefId, special.IconId, weaponDefinition.NameId, special.EnergyCost);
+                SendAbilityDefinition(kit.SpecialSlotDefId, special);
+            }
         }
 
         SendTunneled(setDefinition);
@@ -847,9 +974,7 @@ public sealed class Player : ClientPcData, IEntity
 
     private (AbilityDefinition? Basic, AbilityDefinition? Special) ResolveWeaponAbilities(JobKitDefinition kit, int weaponDefinitionId)
     {
-        var mapping = weaponDefinitionId != 0
-            ? kit.Weapons.FirstOrDefault(w => w.WeaponDefIds.Contains(weaponDefinitionId))
-            : null;
+        var mapping = kit.Weapons.FirstOrDefault(w => w.WeaponDefIds.Contains(weaponDefinitionId));
 
         var basicId = mapping?.BasicAbilityId ?? kit.FallbackBasicAbilityId;
         var specialId = mapping?.SpecialAbilityId ?? 0;
@@ -908,6 +1033,21 @@ public sealed class Player : ClientPcData, IEntity
         }
     }
 
+    public void OnZoneChanged(IZone zone, Vector4 position, Quaternion rotation)
+    {
+        RemoveFromVisibleEntities(true);
+
+        ZoneTile.Entities.Remove(Guid, out _);
+
+        Zone = zone;
+
+        ZoneTile = ZoneTile.Empty;
+
+        Visible = false;
+
+        UpdatePosition(position, rotation);
+    }
+
     public void Dispose()
     {
         RemoveFromVisibleEntities(false); // no need to notify self since we're DCing
@@ -917,5 +1057,6 @@ public sealed class Player : ClientPcData, IEntity
 
         ZoneTile.Entities.Remove(Guid, out _);
         Zone.TryRemovePlayer(Guid);
+        _zoneManager.EvictIfEmpty(Zone);
     }
 }
