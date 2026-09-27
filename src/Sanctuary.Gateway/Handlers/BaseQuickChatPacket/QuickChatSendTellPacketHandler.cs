@@ -15,6 +15,8 @@ public static class QuickChatSendTellPacketHandler
 {
     private static ILogger _logger = null!;
     private static IZoneManager _zoneManager = null!;
+    private static ILogger _chatLogger = null!;
+    private static IResourceManager _resourceManager = null!;
 
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
@@ -22,6 +24,8 @@ public static class QuickChatSendTellPacketHandler
         _logger = loggerFactory.CreateLogger(nameof(QuickChatSendTellPacketHandler));
 
         _zoneManager = serviceProvider.GetRequiredService<IZoneManager>();
+        _chatLogger = loggerFactory.CreateLogger("Chat");
+        _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
     }
 
     public static bool HandlePacket(GatewayConnection connection, ReadOnlySpan<byte> data)
@@ -42,6 +46,15 @@ public static class QuickChatSendTellPacketHandler
 
         if (!_zoneManager.TryGetPlayer(packet.ToName, out var toPlayer))
             return true;
+
+        int packetId = packet.Id;
+        _resourceManager.QuickChats.TryGetValue(packetId, out var quickChatValue);
+        _chatLogger.LogInformation(
+            "QuickChat Tell | From: \"{FromName}\" | To: \"{ToName}\" | ChatText: {ChatText}",
+            connection.Player.Name,
+            packet.ToName,
+            quickChatValue?.ChatText
+        );
 
         if (toPlayer.Ignores.Any(x => x.Guid == connection.Player.Guid))
             return true;

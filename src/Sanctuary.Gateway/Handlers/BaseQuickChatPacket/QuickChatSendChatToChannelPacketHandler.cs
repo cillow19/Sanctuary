@@ -16,12 +16,16 @@ public static class QuickChatSendChatToChannelPacketHandler
 {
     private static ILogger _logger = null!;
     private static IZoneManager _zoneManager = null!;
+    private static ILogger _chatLogger = null!;
+    private static IResourceManager _resourceManager = null!;
 
     public static void ConfigureServices(IServiceProvider serviceProvider)
     {
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
         _logger = loggerFactory.CreateLogger(nameof(QuickChatSendChatToChannelPacketHandler));
         _zoneManager = serviceProvider.GetRequiredService<IZoneManager>();
+        _chatLogger = loggerFactory.CreateLogger("Chat");
+        _resourceManager = serviceProvider.GetRequiredService<IResourceManager>();
     }
 
     public static bool HandlePacket(GatewayConnection connection, ReadOnlySpan<byte> data)
@@ -39,6 +43,17 @@ public static class QuickChatSendChatToChannelPacketHandler
 
         packet.Guid = connection.Player.Guid;
         packet.Name = connection.Player.Name;
+
+        int packetId = packet.Id;
+        _resourceManager.QuickChats.TryGetValue(packetId, out var quickChatValue);
+        _chatLogger.LogInformation(
+            "QuickChat {Channel} | Area: {AreaNameId}, Guild: {GuildName} | From: \"{FromName}\" | ChatText: {ChatText}",
+            packet.Channel,
+            packet.AreaNameId,
+            connection.Player.GuildData?.Name,
+            packet.Name,
+            quickChatValue?.ChatText
+        );
 
         switch (packet.Channel)
         {
