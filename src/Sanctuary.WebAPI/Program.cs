@@ -71,5 +71,6 @@ app.UseHttpLogging();
 
 app.MapAuthEndpoints();
 app.MapPortraitEndpoints();
+app.MapChatLogEndpoints();
 
 app.Run();
